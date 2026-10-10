@@ -268,10 +268,19 @@ body.hud{padding-block:0 24px}
 .pk-fields input[type=file]{font-size:13px;max-width:100%}
 .pk-acts{display:flex;gap:12px;flex-wrap:wrap}
 .perk.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.map-pick{margin-top:12px}
+.map-t .ln b{font-weight:600}
+select{width:100%;min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:500 15px var(--body)}
+.vtoast{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translate(-50%,-16px);opacity:0;pointer-events:none;z-index:40;max-width:min(92vw,420px);padding:10px 16px;border-radius:22px;background:var(--accent);color:var(--accent-ink);font:700 15px var(--body);text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.4);transition:opacity .15s,transform .15s}
+.vtoast.show{opacity:1;transform:translate(-50%,0)}
+.voice-b.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.vhelp{display:grid;gap:6px;margin:0;padding-left:18px;font-size:14px}
 .launch{display:grid;gap:8px;width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);text-align:left;min-height:64px}
 .launch .lh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .launch .lh b{font:800 20px/1 var(--display);letter-spacing:.04em;text-transform:uppercase}
 .launch-map{width:100%;aspect-ratio:16/7;object-fit:cover;border-radius:6px;display:block}
+.mini-row.perks-row{grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:4px}
+.perk-slots{margin:4px 0}
 .mini-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .mini{position:relative;aspect-ratio:1/1;border-radius:8px;overflow:hidden;border:2px solid var(--line);background:var(--bg);display:block}
 .mini .gt-img,.mini .gt-ph{height:100%;border-radius:0;font-size:14px}
@@ -334,6 +343,7 @@ body.hud{padding-block:0 24px}
     <button class="tab" data-act="tab" data-v="gums"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M8.5 10.5a4 4 0 0 1 3-2.5"/></svg>Chicletes</button>
   </div>
 </nav>
+<div class="vtoast" id="vtoast" role="status" aria-live="polite"></div>
 
 <div class="sheet" id="sheet" hidden>
   <div class="scrim" data-act="close"></div>
@@ -412,18 +422,54 @@ function loadLocal(){try{var r=localStorage.getItem(LS);return r?norm(JSON.parse
 function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(st))}catch(e){}}
 
 var st=loadLocal()||seed();
-var ui={tab:'est',map:'',armed:'',touched:false,open:new Set(),libMsg:'',packMsg:'',pickSlot:null,hud:false,cat:'classic',mapName:'',mapZoom:1,pinMode:false};
+var ui={tab:'est',map:'',armed:'',touched:false,open:new Set(),libMsg:'',packMsg:'',pickSlot:null,hud:false,startMap:'',cat:'classic',mapName:'',mapZoom:1,pinMode:false};
 
 /* imagens dos chicletes: guardadas à parte (cada imagem é pequena e vira um documento próprio na conta) */
 var LSI='caderno-rounds-img-v1',imgs={};
 try{imgs=JSON.parse(localStorage.getItem(LSI)||'{}')||{}}catch(e){imgs={}}
-function saveImgsLocal(){try{localStorage.setItem(LSI,JSON.stringify(imgs))}catch(e){}}
+var IDB=null,imgFailAt=0;
+function imgFail(){
+  if(Date.now()-imgFailAt<4000)return;
+  imgFailAt=Date.now();
+  toast('Não foi possível guardar a imagem neste aparelho (sem espaço). Apague imagens que não usa.');
+}
+function saveImgsLocal(){if(IDB)return;try{localStorage.setItem(LSI,JSON.stringify(imgs))}catch(e){imgFail()}}
+function idbOpen(){return new Promise(function(res){
+  try{
+    var rq=indexedDB.open('caderno-rounds',1);
+    rq.onupgradeneeded=function(){rq.result.createObjectStore('imgs')};
+    rq.onsuccess=function(){res(rq.result)};
+    rq.onerror=function(){res(null)};rq.onblocked=function(){res(null)};
+  }catch(e){res(null)}
+})}
+function idbPut(k,v){
+  try{var tx=IDB.transaction('imgs','readwrite');tx.objectStore('imgs').put(v,k);tx.onerror=imgFail;tx.onabort=imgFail}catch(e){imgFail()}
+}
+function idbDel(k){try{IDB.transaction('imgs','readwrite').objectStore('imgs').delete(k)}catch(e){}}
+function idbLoad(){return new Promise(function(res){
+  try{
+    var o={},cur=IDB.transaction('imgs').objectStore('imgs').openCursor();
+    cur.onsuccess=function(){var c=cur.result;if(c){o[c.key]=c.value;c.continue()}else res(o)};
+    cur.onerror=function(){res({})};
+  }catch(e){res({})}
+})}
+idbOpen().then(function(db){
+  if(!db)return;
+  IDB=db;
+  return idbLoad().then(function(o){
+    var changed=false;
+    Object.keys(o).forEach(function(k){if(typeof o[k]==='string'&&!imgs[k]){imgs[k]=o[k];changed=true}});
+    Object.keys(imgs).forEach(function(k){if(!(k in o))idbPut(k,imgs[k])});
+    try{localStorage.removeItem(LSI)}catch(e){}
+    if(changed&&sheet.hidden)render();
+  });
+});
 function putImg(gid,u){
-  imgs[gid]=u;saveImgsLocal();
+  imgs[gid]=u;if(IDB)idbPut(gid,u);else saveImgsLocal();
   if(ref)ref.collection('imgs').doc(gid).set({u:u}).catch(function(){setSync('err')});
 }
 function delImg(gid){
-  delete imgs[gid];saveImgsLocal();
+  delete imgs[gid];if(IDB)idbDel(gid);else saveImgsLocal();
   if(ref)ref.collection('imgs').doc(gid).delete().catch(function(){});
 }
 function toThumb(file){
@@ -488,7 +534,7 @@ async function syncImgs(){
   try{
     var snap=await ref.collection('imgs').get();
     var have={};
-    snap.docs.forEach(function(d){var v=d.data();if(v&&v.u){imgs[d.id]=v.u;have[d.id]=1}});
+    snap.docs.forEach(function(d){var v=d.data();if(v&&v.u){if(imgs[d.id]!==v.u){imgs[d.id]=v.u;if(IDB)idbPut(d.id,v.u)}have[d.id]=1}});
     saveImgsLocal();
     if(sheet.hidden)render();
     var ids=Object.keys(imgs).filter(function(g){return !have[g]&&(g.indexOf('mp_')===0||st.gumLib.some(function(x){return x.id===g}))});
@@ -617,8 +663,8 @@ function viewRotas(){
 }
 
 function clockStart(){
-  return '<div class="clock"><div class="in"><label for="t-map">Mapa<input id="t-map" list="maps" value="'+esc(lastMap())+'" placeholder="Nome do mapa" autocomplete="off"></label>'+
-    '<p class="err" id="t-err" role="alert"></p><button class="btn primary next" data-act="t-start">Iniciar partida</button><div class="row2"><button type="button" class="btn ghost" data-act="map-open">Mapa</button><button type="button" class="btn ghost" data-act="perks-edit">Perks</button></div>'+
+  return '<div class="clock"><div class="in">'+
+    '<p class="err" id="t-err" role="alert"></p><button class="btn primary next" data-act="t-start">Iniciar partida em '+esc(ui.startMap)+'</button><div class="row2"><button type="button" class="btn ghost" data-act="start-back">Trocar mapa</button><button type="button" class="btn ghost" data-act="perks-edit">Perks</button></div>'+voiceBtn()+
     '<p class="hint">Ao iniciar, abre o modo partida com round, tempo, chicletes, perks e mapa. As marcas do pack e dos perks começam zeradas. Toque em “Próximo round” quando cada round terminar; o cronômetro continua contando se você fechar a página. Para ver tudo lado a lado, gire o celular para a horizontal (com a rotação automática ligada).</p></div></div>';
 }
 function clockLive(t){
@@ -647,7 +693,7 @@ function runCard(run){
 }
 function viewTempo(){
   var t=st.timer;
-  var h='<div class="sec-h"><h2>Partida</h2></div>'+viewPack()+(t?clockLive(t):clockStart());
+  var h='<div class="sec-h"><h2>Partida</h2></div>'+(t?viewPack()+clockLive(t):(ui.startMap?viewStartMap()+viewPack()+clockStart():viewMapPick()));
   var runs=st.runs.filter(inMap);
   h+='<div class="sec-h sub"><h3>Runs salvas</h3></div>';
   if(!runs.length)return h+'<p class="muted">Nenhuma run salva'+(ui.map?' neste mapa':'')+'. Ao finalizar uma run, os tempos de cada round ficam aqui para comparar.</p>';
@@ -821,13 +867,62 @@ function pkKey(n){
   for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;
   return 'pk_'+h.toString(36);
 }
+function perkTile(n){
+  var u=imgs[pkKey(n)];
+  return u?'<img class="gt-img" src="'+esc(u)+'" alt="'+esc(n)+'">'
+    :'<span class="gt-ph" style="background:hsl('+hue(n)+' 36% 30%)">'+esc(initials(n))+'</span>';
+}
 function perkChips(){
   var P=st.perks;
-  return P.names.map(function(n){
+  return '<div class="slots perk-slots">'+P.names.map(function(n){
     var on=!!P.on[n];
-    var u=imgs[pkKey(n)];
-    return '<button type="button" class="perk'+(on?' on':'')+'" data-act="perk" data-n="'+esc(n)+'" aria-pressed="'+on+'">'+(u?'<img class="pk-i" src="'+esc(u)+'" alt="" draggable="false">':'<span class="pk-i pk-ph" aria-hidden="true">'+esc(n.charAt(0).toUpperCase())+'</span>')+'<span class="pk-n">'+esc(n)+'</span></button>';
+    return '<div class="slot"><button type="button" class="pt'+(on?' m-ok':'')+'" data-act="perk" data-n="'+esc(n)+'" aria-pressed="'+on+'" aria-label="'+esc(n)+': '+(on?'já pegou':'ainda não pegou')+'">'+perkTile(n)+(on?'<span class="mk" aria-hidden="true">✓</span>':'')+'</button><span class="sname">'+esc(n)+'</span></div>';
+  }).join('')+'</div>';
+}
+function miniPerks(){
+  return '<span class="mini-row perks-row">'+st.perks.names.map(function(n){
+    var on=!!st.perks.on[n];
+    return '<span class="mini'+(on?' m-ok':'')+'">'+perkTile(n)+(on?'<i aria-hidden="true">✓</i>':'')+'</span>';
+  }).join('')+'</span>';
+}
+function mapChoices(){
+  var seen={},out=[];
+  var add=function(n){n=String(n||'').trim();var k=n.toLowerCase();if(n&&!seen[k]){seen[k]=1;out.push(n)}};
+  KNOWN.forEach(add);
+  mapNames().forEach(add);
+  return out;
+}
+function stratsFor(map){
+  var k=String(map||'').trim().toLowerCase();
+  return st.strategies.filter(function(x){return String(x.map||'').trim().toLowerCase()===k}).sort(function(a,b){return a.from-b.from||a.to-b.to});
+}
+function viewMapPick(){
+  var names=mapChoices();
+  var tiles=names.map(function(n){
+    var u=imgs[mapKey(n)],c=stratsFor(n).length;
+    return '<button type="button" class="lib-t map-t" data-act="start-pick" data-n="'+esc(n)+'">'+
+      (u?'<img class="gt-img" src="'+esc(u)+'" alt="">':'<span class="gt-ph" style="background:hsl('+hue(n)+' 36% 30%)">'+esc(initials(n))+'</span>')+
+      '<span class="ln"><b>'+esc(n)+'</b>'+(c?'<br>'+c+(c===1?' estratégia':' estratégias'):'')+'</span></button>';
   }).join('');
+  return '<div class="card"><h3 style="margin:0 0 4px">Escolha o mapa</h3><p class="muted">Toque no mapa da partida. Na próxima tela você vê as estratégias dele, monta o pack e inicia o round.</p>'+
+    '<div class="lib-grid map-pick">'+tiles+'</div>'+
+    '<label for="start-new" style="margin-top:12px">Outro mapa<input id="start-new" maxlength="60" placeholder="Nome do mapa" autocomplete="off"></label>'+
+    '<p class="err" id="t-err" role="alert"></p>'+
+    '<div class="btns" style="justify-content:flex-start"><button type="button" class="btn ghost" data-act="start-new">Usar este mapa</button></div></div>';
+}
+function viewStartMap(){
+  var m=ui.startMap,names=mapChoices();
+  if(names.map(function(x){return x.toLowerCase()}).indexOf(m.toLowerCase())<0)names.unshift(m);
+  var u=imgs[mapKey(m)],list=stratsFor(m);
+  var strat=list.length?'<div class="stack">'+list.map(function(x){
+    var rng=x.from===x.to?String(x.from):x.from+'–'+x.to;
+    return '<article class="card strat"><div class="plate"><small>ROUND</small><b class="'+(rng.length>5?'long':'')+'">'+rng+'</b></div><div style="min-width:0"><div class="meta">'+exTag(x)+arr(x.tags).map(function(t){return '<span class="tag">'+esc(t)+'</span>'}).join('')+'</div><h3>'+esc(x.title)+'</h3>'+(x.plan?'<p class="plan">'+esc(x.plan)+'</p>':'')+'</div></article>';
+  }).join('')+'</div>'
+    :'<div class="card"><p class="muted">Nenhuma estratégia para este mapa ainda.</p><div class="btns" style="justify-content:flex-start"><button type="button" class="btn ghost" data-act="new-est">Criar estratégia</button></div></div>';
+  return '<div class="card"><div class="pk-h"><h3 style="margin:0">Mapa da partida</h3><button type="button" class="btn sm ghost" data-act="start-back">Trocar mapa</button></div>'+
+    '<label for="t-map-sel" style="margin-top:10px">Mapa<select id="t-map-sel">'+names.map(function(n){return '<option value="'+esc(n)+'"'+(n.toLowerCase()===m.toLowerCase()?' selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></label>'+
+    '<button type="button" class="mapthumb" style="margin-top:10px" data-act="map-open" data-n="'+esc(m)+'" aria-label="Abrir mapa de '+esc(m)+'">'+(u?'<img src="'+esc(u)+'" alt="" draggable="false"><span class="mt-l">Mapa · toque para ampliar</span>':'<span class="mt-l" style="position:static;display:inline-block;margin:12px">Adicionar imagem do mapa</span>')+'</button></div>'+
+    '<div class="sec-h sub"><h3>Estratégias de '+esc(m)+'</h3></div>'+strat;
 }
 function mapNames(){
   var set={},out=[],t=st.timer;
@@ -839,7 +934,7 @@ function mapNames(){
 }
 function mapTiles(){
   var cur=st.timer?st.timer.map:'';
-  return mapNames().map(function(n){
+  return mapChoices().map(function(n){
     var u=imgs[mapKey(n)];
     return '<button type="button" class="lib-t map-t" data-act="map-open" data-n="'+esc(n)+'">'+
       (u?'<img class="gt-img" src="'+esc(u)+'" alt="">':'<span class="gt-ph" style="background:var(--surface-2);color:var(--muted);font-size:12px;text-align:center">Sem imagem</span>')+
@@ -849,8 +944,8 @@ function mapTiles(){
 function popHtml(k){
   if(k==='gums')return '<h2>Chicletes</h2>'+viewPack(true)+'<p class="hint">Toque em um chiclete para marcar. Use “trocar” para escolher outro da biblioteca.</p>'+
     '<div class="btns" style="justify-content:space-between"><button type="button" class="btn ghost" data-act="lib-list">Biblioteca</button><button type="button" class="btn primary" data-act="close">Fechar</button></div>';
-  if(k==='perks')return '<h2>Perks</h2><div class="perk-grid">'+perkChips()+'</div><p class="hint">Toque no perk que você já pegou.</p>'+
-    '<div class="btns" style="justify-content:space-between"><button type="button" class="btn ghost" data-act="perks-edit">Editar lista</button><button type="button" class="btn primary" data-act="close">Fechar</button></div>';
+  if(k==='perks')return '<h2>Perks</h2>'+perkChips()+'<p class="hint">Toque no perk que você já pegou. Toque de novo para desmarcar.</p>'+
+    '<div class="btns" style="justify-content:space-between"><button type="button" class="btn ghost" data-act="perk-lib">Biblioteca</button><button type="button" class="btn primary" data-act="close">Fechar</button></div>';
   if(k==='maps'){
     var tl=mapTiles();
     return '<h2>Mapas</h2>'+(tl?'<div class="lib-grid">'+tl+'</div>':'<p class="muted">Nenhum mapa ainda. Digite o nome abaixo e adicione a imagem.</p>')+
@@ -882,47 +977,77 @@ function viewHud(){
     '<button class="btn primary next" data-act="t-next">Próximo round</button></div>'+
     '<div class="hud-col b">'+
     '<button type="button" class="launch" data-act="pop-gums" aria-label="Abrir chicletes"><span class="lh"><b>Chicletes</b><span class="cap" style="margin:0">'+(st.pack.mode==='ok'?'✓ Confere':'✕ X')+'</span></span>'+miniPack()+'</button>'+
-    '<button type="button" class="launch" data-act="pop-perks" aria-label="Abrir perks"><span class="lh"><b>Perks</b><span class="cap" style="margin:0">'+pon+' de '+pn+'</span></span></button>'+
+    '<button type="button" class="launch" data-act="pop-perks" aria-label="Abrir perks"><span class="lh"><b>Perks</b><span class="cap" style="margin:0">'+pon+' de '+pn+'</span></span>'+(pn?miniPerks():'')+'</button>'+
     '<button type="button" class="launch" data-act="pop-maps" aria-label="Abrir mapas"><span class="lh"><b>Mapa</b><span class="cap" style="margin:0">'+esc(t.map)+'</span></span>'+(mu?'<img class="launch-map" src="'+esc(mu)+'" alt="" draggable="false">':'')+'</button></div>'+
     '<div class="hud-col c">'+
     '<div class="row3"><button class="btn ghost" data-act="t-pause">'+(t.pausedAt?'Retomar':'Pausar')+'</button><button class="btn ghost" data-act="t-back"'+(t.splits.length?'':' disabled')+'>Voltar round</button><button class="btn ghost" data-act="t-finish">Finalizar</button></div>'+
-    '<div class="hud-foot"><button type="button" class="link" data-act="hud-close">Sair do modo partida (o cronômetro continua)</button><button type="button" class="link danger" data-act="t-discard">'+(armed?'Confirmar: descartar partida':'Descartar partida')+'</button></div></div>';
+    voiceBtn()+'<div class="hud-foot"><button type="button" class="link" data-act="hud-close">Sair do modo partida (o cronômetro continua)</button><button type="button" class="link danger" data-act="t-discard">'+(armed?'Confirmar: descartar partida':'Descartar partida')+'</button></div></div>';
 }
-function pkRow(n){
-  var u=n?imgs[pkKey(n)]:'';
-  return '<div class="pk-row" data-old="'+esc(n||'')+'"><div class="pk-pic">'+(u?'<img class="gt-img" src="'+esc(u)+'" alt="">':'<span class="gt-ph pk-none">Sem imagem</span>')+'</div>'+
-    '<div class="pk-fields"><input type="text" class="pk-name" maxlength="30" placeholder="Nome do perk" aria-label="Nome do perk" value="'+esc(n||'')+'">'+
-    '<input type="file" class="pk-file" accept="image/*" aria-label="Imagem do perk">'+
-    '<div class="pk-acts"><button type="button" class="link" data-act="pk-img-del">Tirar imagem</button><button type="button" class="link danger" data-act="pk-row-del">Remover perk</button></div></div></div>';
+var pendingPerk=null,pendingPerkNo=false,perkOld=null;
+function perkMatch(name){
+  var k=normKey(name);
+  if(!k)return '';
+  for(var i=0;i<st.perks.names.length;i++){if(normKey(st.perks.names[i])===k)return st.perks.names[i]}
+  return '';
 }
-function formPerks(){
-  openSheet('<h2>Perks da partida</h2><p class="hint">Cada perk pode ter uma imagem sua. Toque em “Escolher arquivo” em cada linha. Perks sem imagem mostram a inicial do nome.</p>'+
-    '<div id="pk-rows" class="pk-rows">'+st.perks.names.map(pkRow).join('')+'</div>'+
-    '<button type="button" class="btn ghost" data-act="pk-row-add">Adicionar perk</button>'+btns(),
-    function(){
-      var rows=Array.prototype.slice.call(panel.querySelectorAll('.pk-row')),seen={},out=[],keep={};
-      rows.forEach(function(r){
-        var inp=r.querySelector('.pk-name'),n=((inp&&inp.value)||'').trim().slice(0,30);
-        if(!n||seen[n])return;
-        seen[n]=1;out.push({n:n,old:r.dataset.old||'',img:r._img,no:r._noimg});
-      });
-      if(!out.length)return ferr('Informe pelo menos um perk.');
-      out=out.slice(0,30);
-      var on={},oldImgs={};
-      st.perks.names.forEach(function(o){oldImgs[o]=imgs[pkKey(o)]});
-      out.forEach(function(o){
-        if(o.old&&st.perks.on[o.old])on[o.n]=true;
-        keep[pkKey(o.n)]=1;
-      });
-      st.perks.names.forEach(function(o){if(!keep[pkKey(o)])delImg(pkKey(o))});
-      out.forEach(function(o){
-        if(o.img)putImg(pkKey(o.n),o.img);
-        else if(o.no)delImg(pkKey(o.n));
-        else if(o.old&&o.old!==o.n&&oldImgs[o.old])putImg(pkKey(o.n),oldImgs[o.old]);
-      });
-      st.perks={names:out.map(function(o){return o.n}),on:on};
-      touch();closeSheet();render();
+function formPerkLib(){
+  var grid=st.perks.names.map(function(n){
+    return '<button type="button" class="lib-t" data-act="perk-edit" data-n="'+esc(n)+'">'+perkTile(n)+'<span class="ln">'+esc(n)+'</span></button>';
+  }).join('');
+  var msg=ui.pkMsg||'';ui.pkMsg='';
+  openSheet('<h2>Biblioteca de perks</h2>'+
+    '<p class="hint">Toque em um perk para renomear, trocar a imagem ou excluir. Ao subir várias imagens, se o nome do arquivo for o nome do perk (ex.: Juggernog.png), a imagem vai para o perk certo; arquivos com nome novo viram perks novos.</p>'+
+    (msg?'<p class="pk-msg" role="status">'+esc(msg)+'</p>':'')+
+    (grid?'<div class="lib-grid">'+grid+'</div>':'<p class="muted">Nenhum perk. Use o Catálogo ou adicione um.</p>')+
+    '<div class="btns" style="justify-content:flex-start"><button type="button" class="btn primary" data-act="perk-cat">Catálogo BO3</button><button type="button" class="btn ghost" data-act="perk-edit">Novo perk</button></div>'+
+    '<label for="pk-multi">Adicionar várias imagens<input type="file" id="pk-multi" accept="image/*" multiple></label>'+
+    '<div class="btns"><button type="button" class="btn ghost" data-act="close">Fechar</button></div>',function(){},'view');
+}
+function formPerks(){formPerkLib()}
+function formPerkEdit(name){
+  perkOld=name||null;pendingPerk=null;pendingPerkNo=false;
+  openSheet('<h2>'+(name?'Editar':'Novo')+' perk</h2>'+
+    '<div class="lib-form"><div class="lib-prev" id="pk-prev">'+(name?perkTile(name):'<span class="gt-ph" style="background:var(--surface-2);color:var(--muted)">?</span>')+'</div>'+
+    '<div style="display:grid;gap:12px;min-width:0"><label for="pk-name">Nome<input id="pk-name" name="name" required maxlength="30" value="'+esc(name||'')+'" autocomplete="off"></label>'+
+    '<label for="pk-img">Imagem<input id="pk-img" type="file" accept="image/*"></label></div></div>'+
+    (name?'<div class="btns" style="justify-content:flex-start"><button type="button" class="btn ghost" data-act="perk-img-del">Tirar imagem</button></div>':'')+
+    '<p class="err" id="ferr" role="alert"></p>'+
+    '<div class="btns" style="justify-content:space-between">'+(name?'<button type="button" class="btn ghost" data-act="perk-del" data-n="'+esc(name)+'">Excluir</button>':'<span></span>')+
+    '<span style="display:flex;gap:8px"><button type="button" class="btn ghost" data-act="perk-lib">Voltar</button><button type="submit" class="btn primary">Salvar</button></span></div>',
+    function(fd){
+      var n=(fd.get('name')||'').trim().slice(0,30);
+      if(!n)return ferr('Informe o nome do perk.');
+      var dup=perkMatch(n);
+      if(dup&&dup!==perkOld)return ferr('Já existe um perk com esse nome.');
+      var oldKey=perkOld?pkKey(perkOld):'',newKey=pkKey(n),oldImg=oldKey?imgs[oldKey]:'';
+      if(perkOld){
+        var ix=st.perks.names.indexOf(perkOld);
+        if(ix>=0)st.perks.names[ix]=n;
+        if(perkOld!==n&&st.perks.on[perkOld]){delete st.perks.on[perkOld];st.perks.on[n]=true}
+      }else{
+        if(st.perks.names.length>=30)return ferr('Limite de 30 perks.');
+        st.perks.names.push(n);
+      }
+      if(pendingPerk){putImg(newKey,pendingPerk);if(oldKey&&oldKey!==newKey)delImg(oldKey)}
+      else if(pendingPerkNo){delImg(newKey);if(oldKey&&oldKey!==newKey)delImg(oldKey)}
+      else if(oldKey&&oldKey!==newKey&&oldImg){putImg(newKey,oldImg);delImg(oldKey)}
+      touch();render();formPerkLib();
+    },'view');
+}
+function perkFiles(files){
+  var ok=0,chain=Promise.resolve();
+  files.forEach(function(f){
+    chain=chain.then(function(){
+      var nm=String(f.name||'').replace(/\.[a-z0-9]+$/i,'').replace(/[_-]+/g,' ').trim().slice(0,30);
+      if(!nm)return;
+      return toThumb(f).then(function(u){
+        var ex=perkMatch(nm)||voicePerk(vnorm(nm));
+        if(!ex){if(st.perks.names.length>=30)return;st.perks.names.push(nm);ex=nm}
+        putImg(pkKey(ex),u);ok++;
+      }).catch(function(){});
     });
+  });
+  return chain.then(function(){if(ok)touch();return ok});
 }
 function formMapSheet(name){
   ui.mapName=name;ui.mapZoom=1;ui.pinMode=false;
@@ -1099,19 +1224,43 @@ function formLib(id,fromSlot){
       if(fromSlot!=null&&!g)closeSheet();else formLibList();
     });
 }
+var addStat={upd:0,neu:0};
+function scoreKey(k,key){
+  if(key.length<4)return 0;
+  if(k===key)return 1000+key.length;
+  if(k.indexOf(key)>=0)return key.length;
+  if(k.length>=6&&key.indexOf(k)>=0)return k.length/2;
+  return 0;
+}
+function bestGumFor(name){
+  var k=normKey(name),best=null,bs=0;
+  if(k.length<3)return null;
+  st.gumLib.forEach(function(g){
+    [g.name,g.en||'',g.cid||''].forEach(function(x){var sc=scoreKey(k,normKey(x));if(sc>bs){bs=sc;best=g}});
+  });
+  return best;
+}
+function bestCatFor(name){
+  var k=normKey(name),best=-1,bs=0;
+  if(k.length<3)return -1;
+  GUMS.forEach(function(c,i){
+    [c[1],c[2]].forEach(function(x){var sc=scoreKey(k,normKey(x));if(sc>bs){bs=sc;best=i}});
+  });
+  return best;
+}
 async function addFiles(files){
-  var n=0;
+  var n=0;addStat={upd:0,neu:0};
   for(var i=0;i<files.length;i++){
     try{
       var u=await toThumb(files[i]);
       var name=(files[i].name||'Chiclete').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim().slice(0,60)||'Chiclete';
-      var mi=matchCat(name),ex=mi>=0?st.gumLib.find(function(g){return g.cid===GUMS[mi][1]}):null;
-      if(ex){putImg(ex.id,u)}
+      var ex=bestGumFor(name);
+      if(ex){putImg(ex.id,u);addStat.upd++}
       else{
-        var id=uid();
+        var mi=bestCatFor(name),id=uid();
         if(mi>=0){var c=GUMS[mi];st.gumLib.push({id:id,name:c[2],en:c[1],cat:c[0],fx:c[3],cid:c[1]})}
         else st.gumLib.push({id:id,name:name});
-        putImg(id,u);
+        putImg(id,u);addStat.neu++;
       }
       n++;
     }catch(e){}
@@ -1152,7 +1301,7 @@ function after(map){if(map&&ui.map&&ui.map!==map)ui.map=map;touch();closeSheet()
 
 function formEst(id){
   var s=id?st.strategies.find(function(x){return x.id===id}):null;
-  var v=s||{map:ui.map||lastMap(),from:1,to:10,title:'',plan:'',tags:[]};
+  var v=s||{map:ui.map||ui.startMap||lastMap(),from:1,to:10,title:'',plan:'',tags:[]};
   openSheet('<h2>'+(s?'Editar':'Nova')+' estratégia</h2>'+
     '<label for="e-map">Mapa<input id="e-map" name="map" list="maps" required maxlength="60" value="'+esc(v.map)+'" autocomplete="off"></label>'+
     '<div class="row2"><label for="e-from">Do round<input id="e-from" name="from" type="number" inputmode="numeric" min="1" max="999" required value="'+v.from+'"></label>'+
@@ -1256,8 +1405,7 @@ document.addEventListener('pointercancel',function(){fdn=null},true);
 document.addEventListener('click',function(e){
   if(!fastNow&&Date.now()-fastAt<600){var fe=e.target.closest&&e.target.closest('[data-act]');if(fe&&FAST[fe.dataset.act]){e.stopImmediatePropagation();e.preventDefault();return}}
 },true);
-document.addEventListener('click',function(e){
-  var el=e.target.closest('[data-act]');if(!el)return;
+function act(el){
   var a=el.dataset.act,d=el.dataset,t=st.timer;
   switch(a){
     case 'tab':ui.tab=d.v;ui.armed='';render();window.scrollTo(0,0);break;
@@ -1333,21 +1481,38 @@ document.addEventListener('click',function(e){
       }catch(e){ui.bkMsg='Não foi possível gerar o backup.'}
       var bm=$('#bk-msg');if(bm)bm.textContent=ui.bkMsg;
       break;
-    case 'perks-edit':formPerks();break;
-    case 'pk-row-add':
-      var pr=$('#pk-rows');
-      if(pr&&pr.children.length<30){pr.insertAdjacentHTML('beforeend',pkRow(''));var nl=pr.lastElementChild.querySelector('.pk-name');if(nl)nl.focus()}
+    case 'perks-edit':
+    case 'perk-lib':formPerkLib();break;
+    case 'perk-edit':formPerkEdit(d.n||null);break;
+    case 'perk-img-del':
+      pendingPerk=null;pendingPerkNo=true;
+      var pp=$('#pk-prev');if(pp)pp.innerHTML='<span class="gt-ph" style="background:var(--surface-2);color:var(--muted)">?</span>';
       break;
-    case 'pk-row-del':
-      var rw=el.closest('.pk-row');if(rw)rw.remove();
-      break;
-    case 'pk-img-del':
-      var r2=el.closest('.pk-row');
-      if(r2){r2._img=null;r2._noimg=true;var pc=r2.querySelector('.pk-pic');if(pc)pc.innerHTML='<span class="gt-ph pk-none">Sem imagem</span>'}
-      break;
+    case 'perk-del':
+      if(el.dataset.sure!=='1'){el.dataset.sure='1';el.textContent='Confirmar exclusão';break}
+      st.perks.names=st.perks.names.filter(function(x){return x!==d.n});
+      delete st.perks.on[d.n];delImg(pkKey(d.n));
+      touch();render();formPerkLib();break;
+    case 'perk-cat':
+      var added=0;
+      DEF_PERKS.forEach(function(n){if(!perkMatch(n)&&st.perks.names.length<30){st.perks.names.push(n);added++}});
+      if(added)touch();
+      ui.pkMsg=added?(added===1?'1 perk adicionado.':added+' perks adicionados.'):'Todos os perks do catálogo já estão na biblioteca.';
+      render();formPerkLib();break;
     case 'map-open':
       if(d.n){formMap(d.n);break}
       openPop('maps');break;
+    case 'voice-toggle':
+      if(voice.on){voiceStop();voiceSet('')}
+      else{voice.on=true;voiceSet('Iniciando o microfone…');voiceStart()}
+      render();break;
+    case 'voice-help':voiceHelp();break;
+    case 'start-pick':ui.startMap=d.n||'';render();window.scrollTo(0,0);break;
+    case 'start-new':
+      var sn=(($('#start-new')&&$('#start-new').value)||'').trim().slice(0,60);
+      if(!sn){var se=$('#t-err');if(se)se.textContent='Digite o nome do mapa.';break}
+      ui.startMap=sn;render();window.scrollTo(0,0);break;
+    case 'start-back':ui.startMap='';render();window.scrollTo(0,0);break;
     case 'pop-gums':openPop('gums');break;
     case 'pop-perks':openPop('perks');break;
     case 'pop-maps':openPop('maps');break;
@@ -1383,8 +1548,8 @@ document.addEventListener('click',function(e){
       formCatalog();
       break;
     case 't-start':
-      var map=($('#t-map').value||'').trim();
-      if(!map){$('#t-err').textContent='Informe o nome do mapa para iniciar.';break}
+      var map=(ui.startMap||'').trim();
+      if(!map){ui.startMap='';render();break}
       st.timer={map:map,round:1,splits:[],roundStart:Date.now(),pausedAt:null};
       st.pack.slots.forEach(function(sl){sl.mark=''});
       st.perks.on={};
@@ -1407,15 +1572,16 @@ document.addEventListener('click',function(e){
       if(!t)break;
       t.splits.push(roundMs(t));
       st.runs.unshift({id:uid(),map:t.map,date:new Date().toISOString(),round:t.round,splits:t.splits.slice(),total:t.splits.reduce(function(p,q){return p+q},0),note:''});
-      st.timer=null;ui.armed='';
+      st.timer=null;ui.armed='';ui.startMap='';
       if(ui.map&&ui.map!==st.runs[0].map)ui.map=st.runs[0].map;
       touch();render();break;
     case 't-discard':
-      if(ui.armed==='discard'){st.timer=null;ui.armed='';touch();render()}
+      if(ui.armed==='discard'){st.timer=null;ui.armed='';ui.startMap='';touch();render()}
       else{ui.armed='discard';render();clearTimeout(armTm);armTm=setTimeout(function(){ui.armed='';render()},3500)}
       break;
   }
-});
+}
+document.addEventListener('click',function(e){var el=e.target.closest('[data-act]');if(el)act(el)});
 panel.addEventListener('submit',function(e){e.preventDefault();if(onSubmit)onSubmit(new FormData(panel))});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!sheet.hidden)closeSheet()});
 document.addEventListener('toggle',function(e){
@@ -1424,6 +1590,7 @@ document.addEventListener('toggle',function(e){
 },true);
 document.addEventListener('change',function(e){
   var t=e.target;
+  if(t&&t.id==='t-map-sel'){ui.startMap=t.value;render();return}
   if(t&&t.id==='bk-file'&&t.files&&t.files[0]){
     var fr=new FileReader();
     fr.onerror=function(){ui.bkMsg='Não foi possível ler o arquivo.';render()};
@@ -1434,7 +1601,7 @@ document.addEventListener('change',function(e){
         st=norm(d.state);
         var im=d.imgs&&typeof d.imgs==='object'?d.imgs:{};
         Object.keys(im).forEach(function(k){if(typeof im[k]==='string'&&im[k].indexOf('data:image/')===0)imgs[k]=im[k]});
-        saveImgsLocal();
+        if(IDB)Object.keys(im).forEach(function(k){if(imgs[k])idbPut(k,imgs[k])});else saveImgsLocal();
         if(ref)Object.keys(im).forEach(function(k){ref.collection('imgs').doc(k).set({u:imgs[k]}).catch(function(){})});
         ui.hud=!!st.timer;ui.bkMsg='Backup restaurado.';
         touch();render();
@@ -1444,13 +1611,18 @@ document.addEventListener('change',function(e){
     return;
   }
   if(t&&t.id==='m-file'&&t.files&&t.files[0]){useMapFile(t.files[0]);return}
-  if(t&&t.classList&&t.classList.contains('pk-file')&&t.files&&t.files[0]){
-    var row=t.closest('.pk-row');
+  if(t&&t.id==='pk-img'&&t.files&&t.files[0]){
     toThumb(t.files[0]).then(function(u){
-      if(!row)return;
-      row._img=u;row._noimg=false;
-      var pc=row.querySelector('.pk-pic');if(pc)pc.innerHTML='<img class="gt-img" src="'+esc(u)+'" alt="Pré-visualização">';
+      pendingPerk=u;pendingPerkNo=false;
+      var pv=$('#pk-prev');if(pv)pv.innerHTML='<img class="gt-img" src="'+esc(u)+'" alt="Pré-visualização da imagem">';
     }).catch(function(){ferr('Não foi possível ler esta imagem. Tente outro arquivo.')});
+    return;
+  }
+  if(t&&t.id==='pk-multi'&&t.files&&t.files.length){
+    perkFiles(Array.from(t.files)).then(function(n){
+      ui.pkMsg=n?(n===1?'1 imagem adicionada.':n+' imagens adicionadas.'):'Não foi possível ler as imagens escolhidas.';
+      render();formPerkLib();
+    });
     return;
   }
   if(t&&t.id==='l-img'&&t.files&&t.files[0]){
@@ -1462,7 +1634,7 @@ document.addEventListener('change',function(e){
   }
   if(t&&t.id==='lib-multi'&&t.files&&t.files.length){
     addFiles(Array.from(t.files)).then(function(n){
-      ui.libMsg=n?(n===1?'1 imagem adicionada.':n+' imagens adicionadas.')+' Toque em um chiclete para dar o nome certo.':'Não foi possível ler as imagens escolhidas.';
+      ui.libMsg=n?(addStat.upd?addStat.upd+(addStat.upd===1?' imagem foi para um chiclete que você já tinha.':' imagens foram para chicletes que você já tinha.'):'')+(addStat.neu?' '+addStat.neu+(addStat.neu===1?' virou um chiclete novo (o nome do arquivo não bateu com nenhum). Toque nele para dar o nome certo.':' viraram chicletes novos (o nome do arquivo não bateu com nenhum). Toque neles para dar o nome certo.'):''):'Não foi possível ler as imagens escolhidas.';
       formLibList();
     });
     return;
@@ -1491,6 +1663,158 @@ document.addEventListener('beforeinput',function(e){
 document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='visible'){keepAwake();pull();updateTimer()}
 });
+
+/* ---------- comando de voz ---------- */
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+var voice={on:false,rec:null,starts:[],lastTx:'',lastAt:0,confirmAt:0,msg:''};
+var toastTm=0;
+function toast(msg){
+  var el=$('#vtoast');if(!el)return;
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTm);toastTm=setTimeout(function(){el.classList.remove('show')},2600);
+}
+function voiceSet(msg){voice.msg=msg||'';var e=$('#voice-st');if(e)e.textContent=voice.msg}
+function vnorm(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
+var NUMS={'um':1,'uma':1,'1':1,'dois':2,'duas':2,'2':2,'tres':3,'3':3,'quatro':4,'4':4,'cinco':5,'5':5};
+var PERK_ALIAS={'Quick Revive':['revive','quick'],'Juggernog':['jugger nog','juggernaut','jugernog','juger','jugger'],'Speed Cola':['speed','speedcola'],'Double Tap':['doubletap','double','dabol tap'],'Stamin-Up':['stamin up','stamina up','stamina','estamina'],'Mule Kick':['mulekick','mule','mula'],"Widow's Wine":['widows wine','widow','viuva'],'Electric Cherry':['cherry','cereja','eletric'],'Deadshot Daiquiri':['dead shot','deadshot','daiquiri'],'PhD Flopper':['phd','p h d','flopper','fidi']};
+function voicePerk(q){
+  var best='',bl=0;
+  st.perks.names.forEach(function(n){
+    [vnorm(n)].concat((PERK_ALIAS[n]||[]).map(vnorm)).forEach(function(a){
+      if(a&&(' '+q+' ').indexOf(' '+a+' ')>=0&&a.length>bl){best=n;bl=a.length}
+    });
+  });
+  return best;
+}
+function fireAct(a,data){
+  var el={dataset:Object.assign({act:a},data||{}),closest:function(){return el},setAttribute:function(){},textContent:''};
+  fastNow=true;
+  try{act(el)}finally{fastNow=false}
+}
+function voiceCmd(q){
+  var t=st.timer,m;
+  if(/\b(confirmar|confirmo)\b/.test(q)&&voice.confirmAt&&Date.now()<voice.confirmAt){
+    voice.confirmAt=0;
+    if(t){fireAct('t-finish');return 'Partida finalizada e salva'}
+  }
+  if(/(finalizar|encerrar|terminar) (a |o )?(partida|jogo)/.test(q)){
+    if(!t)return 'Não há partida em andamento';
+    voice.confirmAt=Date.now()+8000;return 'Diga “confirmar” para finalizar';
+  }
+  if(/(iniciar|comecar) (a |o )?(partida|jogo)/.test(q)){
+    if(t)return 'Já há uma partida em andamento';
+    if(!ui.startMap)return 'Escolha o mapa primeiro';
+    fireAct('t-start');return 'Partida iniciada em '+st.timer.map;
+  }
+  if(/abrir (os |as )?(chicletes|chiclete|gomas|goma)\b/.test(q)){fireAct('pop-gums');return 'Chicletes'}
+  if(/abrir (os |as )?perks?\b/.test(q)){fireAct('pop-perks');return 'Perks'}
+  if(/abrir (o |os )?mapas?\b/.test(q)){fireAct('pop-maps');return 'Mapas'}
+  if(/\b(fechar|fecha)\b/.test(q)){if(!sheet.hidden){fireAct('close');return 'Fechado'}return ''}
+  if(!t)return '';
+  if(/(proximo|proxima) (round|rodada)|\bpassou\b|\bnovo round\b|\bnext round\b/.test(q)){fireAct('t-next');return 'Round '+st.timer.round}
+  if(/(voltar|volta|desfazer) (o |a )?(round|rodada)/.test(q)){
+    if(!t.splits.length)return 'Não há round anterior';
+    fireAct('t-back');return 'Voltou para o round '+st.timer.round;
+  }
+  if(/\b(pausar|pausa|pause)\b/.test(q)){if(!t.pausedAt)fireAct('t-pause');return 'Pausado'}
+  if(/\b(retomar|continuar|despausar)\b/.test(q)){if(t.pausedAt)fireAct('t-pause');return 'Retomado'}
+  if(m=q.match(/\bmodo (x|xis|confere|certo)\b/)){
+    st.pack.mode=(m[1]==='x'||m[1]==='xis')?'x':'ok';touch();render();
+    return 'Marcar com '+(st.pack.mode==='x'?'X':'confere');
+  }
+  if(m=q.match(/(desmarcar|limpar|tirar) (o |a )?(chiclete|chicletes|goma|gomas|gum) (numero )?(\w+)/)){
+    var u=NUMS[m[5]];
+    if(!u||!st.pack.slots[u-1].gid)return '';
+    st.pack.slots[u-1].mark='';touch();render();return 'Chiclete '+u+' sem marca';
+  }
+  if(m=q.match(/(chiclete|chicletes|goma|gomas|gum) (numero )?(\w+)( (x|xis|confere|certo|ok))?\b/)){
+    var n=NUMS[m[3]];
+    if(!n)return '';
+    var sl=st.pack.slots[n-1];
+    if(!sl.gid)return 'Espaço '+n+' está vazio';
+    var mk=m[5]?((m[5]==='x'||m[5]==='xis')?'x':'ok'):st.pack.mode;
+    sl.mark=mk;touch();render();
+    return 'Chiclete '+n+(mk==='x'?': X':': confere');
+  }
+  if(m=q.match(/(perdi|tirar|desmarcar) (o |a )?(perk |bebida )?(.+)/)){
+    var pk0=voicePerk(m[4]);
+    if(pk0){delete st.perks.on[pk0];touch();render();return pk0+': desmarcado'}
+  }
+  if(m=q.match(/(peguei|pegou|comprei|perk|bebida|tenho) (o |a )?(.+)/)){
+    var pk=voicePerk(m[3]);
+    if(pk){st.perks.on[pk]=true;touch();render();return pk+': marcado'}
+  }
+  return '';
+}
+function voiceHear(alts){
+  var qs=alts.map(vnorm).filter(Boolean);
+  if(!qs.length)return;
+  var now=Date.now();
+  if(qs[0]===voice.lastTx&&now-voice.lastAt<1500)return;
+  voice.lastTx=qs[0];voice.lastAt=now;
+  var fb='';
+  for(var i=0;i<qs.length&&!fb;i++){try{fb=voiceCmd(qs[i])}catch(e){fb=''}}
+  if(fb){toast(fb);voiceSet('')}
+  else voiceSet('Ouvi: “'+alts[0]+'” (sem comando)');
+}
+function voiceStart(){
+  if(!SR){toast('Este navegador não tem comando de voz. Use o Chrome.');voice.on=false;return}
+  if(voice.rec)return;
+  var r=new SR();
+  r.lang='pt-BR';r.continuous=true;r.interimResults=false;r.maxAlternatives=3;
+  r.onresult=function(e){
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      var res=e.results[i];if(!res.isFinal)continue;
+      var alts=[];for(var j=0;j<res.length;j++)alts.push(res[j].transcript);
+      voiceHear(alts);
+    }
+  };
+  r.onstart=function(){voice.started=true;if(!voice.msg||/Ouvindo|Iniciando/.test(voice.msg))voiceSet('Microfone ligado. Diga um comando.')};
+  r.onsoundstart=function(){voiceSet('Escutando…')};
+  r.onerror=function(e){
+    var c=e&&e.error;
+    if(c==='not-allowed'){voice.on=false;voiceSet('Microfone bloqueado. Toque no cadeado ao lado do endereço do site, escolha Permissões e libere o Microfone. Depois ligue a voz de novo.');render()}
+    else if(c==='service-not-allowed'){voice.on=false;voiceSet('O Chrome não liberou o reconhecimento de voz neste aparelho. Confira se o app Google está atualizado e se o ditado por voz está ativado no teclado.');render()}
+    else if(c==='audio-capture'){voice.on=false;voiceSet('Nenhum microfone disponível. Feche outros apps que usam o microfone e tente de novo.');render()}
+    else if(c==='network')voiceSet('Sem internet: o reconhecimento de voz precisa de conexão.');
+    else if(c&&c!=='no-speech'&&c!=='aborted')voiceSet('Erro de voz: '+c);
+  };
+  r.onend=function(){
+    voice.rec=null;
+    if(!voice.on||document.visibilityState!=='visible')return;
+    var now=Date.now();
+    voice.starts=voice.starts.filter(function(x){return now-x<8000});
+    voice.starts.push(now);
+    if(voice.starts.length>8){voice.on=false;voiceSet('Voz desligada: o microfone ficou reiniciando. Toque em Voz para ligar de novo.');render();return}
+    setTimeout(voiceStart,250);
+  };
+  voice.rec=r;voice.started=false;
+  try{r.start()}catch(e){voice.rec=null;voiceSet('Não foi possível iniciar o microfone: '+(e&&e.message||e))}
+  clearTimeout(voice.chk);
+  voice.chk=setTimeout(function(){if(voice.on&&voice.rec===r&&!voice.started)voiceSet('O microfone não iniciou. Confira se o Chrome pediu permissão e se você está no site (e não dentro de outro app).')},5000);
+}
+function voiceStop(){
+  voice.on=false;
+  var r=voice.rec;voice.rec=null;
+  if(r){r.onend=null;try{r.stop()}catch(e){}}
+}
+function voiceBtn(){
+  if(!SR)return '<p class="hint">Comando de voz indisponível aqui. Abra o app pelo Chrome, pelo endereço do site ou pelo ícone na tela inicial. Dentro do app do Claude e em outros navegadores ele não funciona.</p>';
+  return '<div class="row2"><button type="button" class="btn ghost voice-b'+(voice.on?' on':'')+'" data-act="voice-toggle" aria-pressed="'+voice.on+'">Voz: '+(voice.on?'ligada':'desligada')+'</button><button type="button" class="btn ghost" data-act="voice-help">Comandos</button></div><p class="hint" id="voice-st" role="status">'+esc(voice.msg)+'</p>';
+}
+function voiceHelp(){
+  openSheet('<h2>Comandos de voz</h2><p class="hint">Fale perto do microfone, em português. Funciona só com internet. Com o jogo alto ou chat de voz, ele pode errar ou entender coisas que você não pediu.</p>'+
+    '<ul class="vhelp"><li><b>“próximo round”</b>, “passou”: avança o round</li><li><b>“voltar round”</b>: volta um round</li><li><b>“pausar”</b> e <b>“retomar”</b></li>'+
+    '<li><b>“chiclete 3”</b>: marca o chiclete 3 do pack (do 1 ao 5)</li><li>“chiclete 3 X” ou “chiclete 3 confere”</li><li>“desmarcar chiclete 3”</li><li>“modo X” e “modo confere”: como marcar por padrão</li>'+
+    '<li><b>“peguei Juggernog”</b>, “perk Speed Cola”: marca o perk</li><li>“perdi Juggernog”: desmarca o perk</li>'+
+    '<li>“abrir chicletes”, “abrir perks”, “abrir mapa”, “fechar”</li><li>“iniciar partida”: depois de escolher o mapa</li><li><b>“finalizar partida”</b>, depois “confirmar”</li></ul>'+
+    '<div class="btns"><button type="button" class="btn primary" data-act="close">Fechar</button></div>',function(){},'view');
+}
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible'&&voice.on&&!voice.rec)voiceStart();
+});
+['caderno-rounds-apikey','caderno-rounds-model','caderno-rounds-chat'].forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});
+
 
 ui.hud=!!st.timer;
 render();setSync('local');
