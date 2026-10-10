@@ -1667,7 +1667,7 @@ document.addEventListener('visibilitychange',function(){
 
 /* ---------- comando de voz ---------- */
 var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-var voice={on:false,rec:null,starts:[],lastTx:'',lastAt:0,confirmAt:0,msg:''};
+var voice={on:false,rec:null,starts:[],lastTx:'',lastAt:0,advAt:0,confirmAt:0,msg:''};
 var toastTm=0;
 function toast(msg){
   var el=$('#vtoast');if(!el)return;
@@ -1719,10 +1719,79 @@ function voicePerk(q){
   });
   return best;
 }
+var GFILL={o:1,a:1,os:1,as:1,de:1,do:1,da:1,chiclete:1,chicletes:1,goma:1,gomas:1,gum:1,gumgum:1,numero:1,eu:1,usei:1,usou:1,mastiguei:1,mascar:1,marcar:1,marquei:1,peguei:1,pegou:1,comprei:1,tenho:1,usar:1};
+function tokSim(a,b){
+  if(a===b)return 1;
+  if(a.length>=4&&b.length>=4&&(a.indexOf(b)===0||b.indexOf(a)===0))return .8;
+  if(a.length>=5&&b.length>=5&&Math.abs(a.length-b.length)<=1){
+    var d=0,i=0,j=0;
+    while(i<a.length&&j<b.length&&d<=1){
+      if(a[i]===b[j]){i++;j++}
+      else{d++;if(a.length>b.length)i++;else if(b.length>a.length)j++;else{i++;j++}}
+    }
+    d+=(a.length-i)+(b.length-j);
+    if(d<=1)return .7;
+  }
+  return 0;
+}
+function gumScore(qt,g){
+  var best=0;
+  [g.name,g.en||''].forEach(function(nm){
+    var nt=vnorm(nm).split(' ').filter(function(w){return w&&!GFILL[w]&&w.length>1});
+    if(!nt.length||!qt.length)return;
+    var sum=0;
+    qt.forEach(function(w){var b=0;nt.forEach(function(x){var v=tokSim(w,x);if(v>b)b=v});sum+=b});
+    var cov=sum/qt.length,rec=sum/nt.length;
+    var sc=Math.min(cov,.5+rec/2)*(cov>=.99&&rec>=.99?1.1:1);
+    if(sc>best)best=sc;
+  });
+  return best;
+}
+function gumByVoice(txt,packOnly){
+  var qt=vnorm(txt).split(' ').filter(function(w){return w&&!GFILL[w]});
+  if(!qt.length)return null;
+  var best=null,bs=0,bi=-1;
+  st.pack.slots.forEach(function(sl,i){
+    var g=libGum(sl.gid);if(!g)return;
+    var sc=gumScore(qt,g);
+    if(sc>bs){bs=sc;best=g;bi=i}
+  });
+  var inPack=bs>=.6;
+  if(!inPack&&!packOnly){
+    var bs2=0,b2=null;
+    st.gumLib.forEach(function(g){var sc=gumScore(qt,g);if(sc>bs2){bs2=sc;b2=g}});
+    if(bs2>=.6&&bs2>bs)return {gum:b2,idx:-1};
+  }
+  return inPack?{gum:best,idx:bi}:null;
+}
+function voiceGumName(txt,unmark,packOnly){
+  var q=vnorm(txt),mk='';
+  var m=q.match(/^(.*?)\s*\b(x|xis|confere|certo|ok)$/);
+  if(m&&m[1]){q=m[1];mk=(m[2]==='x'||m[2]==='xis')?'x':'ok'}
+  var r=gumByVoice(q,packOnly);
+  if(!r)return '';
+  if(r.idx<0)return r.gum.name+' não está no seu pack';
+  var sl=st.pack.slots[r.idx];
+  if(unmark){sl.mark='';touch();render();return r.gum.name+': sem marca'}
+  mk=mk||st.pack.mode;
+  sl.mark=mk;touch();render();
+  return r.gum.name+(mk==='x'?': X':': confere');
+}
 function fireAct(a,data){
   var el={dataset:Object.assign({act:a},data||{}),closest:function(){return el},setAttribute:function(){},textContent:''};
   fastNow=true;
   try{act(el)}finally{fastNow=false}
+}
+var ADV_BARE={passou:1,passa:1,passar:1,pasou:1,passo:1,passei:1,passamos:1,proximo:1,proxima:1,proximos:1,avanca:1,avancar:1,avancou:1,avance:1,seguinte:1,next:1,vai:1,bora:1,foi:1,subiu:1,sobe:1,acabou:1,terminou:1,terminei:1,pronto:1,'mais um':1,'proximo round':1,'passa round':1,'passou round':1};
+function isAdvance(q){
+  if(/\b(voltar|volta|voltou|desfazer|anterior|pausar|retomar|partida|jogo)\b/.test(q))return false;
+  var w=q.split(' ').filter(Boolean);
+  if(w.length<=2&&(ADV_BARE[q]||w.every(function(x){return ADV_BARE[x]})))return true;
+  if(/\b(proximo|proxima|seguinte|novo|nova|next|outro|outra|mais um|mais uma)\b.*\b(round|rodada|rd)\b|\b(round|rodada)\b.*\b(proximo|proxima|seguinte|novo|next)\b/.test(q))return true;
+  if(/\b(passou|passa|passar|passei|passamos|pasou|avancou|avanca|avancar|avance|acabou|terminou|terminei|finalizou|completou|completo|concluido|concluiu|fim|subiu|sobe|fechou|foi)\b/.test(q)&&/\b(round|rodada|rd)\b/.test(q))return true;
+  if(/\b(passa|passar|passei|passou|vai|ir|pula|pular)\b.*\b(pro|para o|pra|para a|de) (proximo|proxima|round|rodada)\b/.test(q))return true;
+  if(/\b(proximo|proxima)\b/.test(q)&&w.length<=4)return true;
+  return false;
 }
 function voiceCmd(q){
   var t=st.timer,m;
@@ -1744,10 +1813,15 @@ function voiceCmd(q){
   if(/abrir (o |os )?mapas?\b/.test(q)){fireAct('pop-maps');return 'Mapas'}
   if(/\b(fechar|fecha)\b/.test(q)){if(!sheet.hidden){fireAct('close');return 'Fechado'}return ''}
   if(!t)return '';
-  if(/(proximo|proxima) (round|rodada)|\bpassou\b|\bnovo round\b|\bnext round\b/.test(q)){fireAct('t-next');return 'Round '+st.timer.round}
   if(m=q.match(/\b(round|rodada)\s+(.+)$/)){
     var rn=ptNum(m[2]);
-    if(rn!=null&&!/^(proximo|proxima)\b/.test(q))return setRoundTo(rn);
+    if(rn!=null&&!isAdvance(q.replace(/\b(round|rodada)\s+.+$/,'')+' round'))return setRoundTo(rn);
+  }
+  if(isAdvance(q)){
+    var nowA=Date.now();
+    if(nowA-voice.advAt<1800)return 'Round '+st.timer.round;
+    voice.advAt=nowA;
+    fireAct('t-next');return 'Round '+st.timer.round;
   }
   if(/(voltar|volta|desfazer) (o |a )?(round|rodada)/.test(q)){
     if(!t.splits.length)return 'Não há round anterior';
@@ -1761,17 +1835,26 @@ function voiceCmd(q){
   }
   if(m=q.match(/(desmarcar|limpar|tirar) (o |a )?(chiclete|chicletes|goma|gomas|gum) (numero )?(\w+)/)){
     var u=NUMS[m[5]];
-    if(!u||!st.pack.slots[u-1].gid)return '';
-    st.pack.slots[u-1].mark='';touch();render();return 'Chiclete '+u+' sem marca';
+    if(u){
+      if(!st.pack.slots[u-1].gid)return '';
+      st.pack.slots[u-1].mark='';touch();render();return 'Chiclete '+u+' sem marca';
+    }
   }
   if(m=q.match(/(chiclete|chicletes|goma|gomas|gum) (numero )?(\w+)( (x|xis|confere|certo|ok))?\b/)){
     var n=NUMS[m[3]];
-    if(!n)return '';
-    var sl=st.pack.slots[n-1];
-    if(!sl.gid)return 'Espaço '+n+' está vazio';
-    var mk=m[5]?((m[5]==='x'||m[5]==='xis')?'x':'ok'):st.pack.mode;
-    sl.mark=mk;touch();render();
-    return 'Chiclete '+n+(mk==='x'?': X':': confere');
+    if(n){
+      var sl=st.pack.slots[n-1];
+      if(!sl.gid)return 'Espaço '+n+' está vazio';
+      var mk=m[5]?((m[5]==='x'||m[5]==='xis')?'x':'ok'):st.pack.mode;
+      sl.mark=mk;touch();render();
+      return 'Chiclete '+n+(mk==='x'?': X':': confere');
+    }
+  }
+  if(m=q.match(/^(desmarcar|limpar|tirar|desfazer) (.+)/)){
+    var gu=voiceGumName(m[2],true);if(gu)return gu;
+  }
+  if(m=q.match(/^(?:eu )?(?:usei|usou|mastiguei|mascar|marcar|marquei|chiclete|chicletes|goma|gomas|gum) (.+)/)){
+    var gm=voiceGumName(m[1],false);if(gm)return gm;
   }
   if(m=q.match(/(perdi|tirar|desmarcar) (o |a )?(perk |bebida )?(.+)/)){
     var pi0=perkByIndex(m[4]),pk0=pi0?pi0.name:voicePerk(m[4]);
@@ -1782,30 +1865,49 @@ function voiceCmd(q){
     var pi1=perkByIndex(m[3]),pk=pi1?pi1.name:voicePerk(m[3]);
     if(pi1&&!pi1.name)return 'Não existe o perk '+pi1.n;
     if(pk){st.perks.on[pk]=true;touch();render();return 'Perk '+(st.perks.names.indexOf(pk)+1)+', '+pk+': marcado'}
+    var gp=voiceGumName(m[3],false);if(gp)return gp;
   }
+  var gb=voiceGumName(q,false,true);if(gb)return gb;
   return '';
 }
-function voiceHear(alts){
-  var qs=alts.map(vnorm).filter(Boolean);
+function buzz(){try{if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate(60)}catch(e){}}
+function vfix(t){
+  return vnorm(t).replace(/\b(raund|raunde|raundi|haund|hound|rond|ronde|rodi|rauni|raudi|ran|raun|round de)\b/g,'round').replace(/\b(proximu|prossimo|proxmo|proximo)\b/g,'proximo').replace(/\b(proxima rodada)\b/g,'proximo round').replace(/\b(pasou|pasa|pasu|passo)\b/g,'passou');
+}
+function voiceHear(alts,interim){
+  var qs=alts.map(vfix).filter(Boolean);
   if(!qs.length)return;
   var now=Date.now();
+  if(interim){
+    /* resultado parcial: só reage rápido ao comando de avançar round */
+    if(!st.timer)return;
+    for(var k=0;k<qs.length;k++){
+      if(isAdvance(qs[k])&&!/\b(round|rodada)\s+\S*\d/.test(qs[k])&&!(ptNum((qs[k].match(/\b(?:round|rodada)\s+(.+)$/)||[])[1]||'')!=null)){
+        voice.lastTx=qs[k];voice.lastAt=now;
+        var f0='';try{f0=voiceCmd(qs[k])}catch(e){}
+        if(f0){buzz();toast(f0);voiceSet('')}
+        return;
+      }
+    }
+    return;
+  }
   if(qs[0]===voice.lastTx&&now-voice.lastAt<1500)return;
   voice.lastTx=qs[0];voice.lastAt=now;
   var fb='';
   for(var i=0;i<qs.length&&!fb;i++){try{fb=voiceCmd(qs[i])}catch(e){fb=''}}
-  if(fb){toast(fb);voiceSet('')}
+  if(fb){buzz();toast(fb);voiceSet('')}
   else voiceSet('Ouvi: “'+alts[0]+'” (sem comando)');
 }
 function voiceStart(){
   if(!SR){toast('Este navegador não tem comando de voz. Use o Chrome.');voice.on=false;return}
   if(voice.rec)return;
   var r=new SR();
-  r.lang='pt-BR';r.continuous=true;r.interimResults=false;r.maxAlternatives=3;
+  r.lang='pt-BR';r.continuous=true;r.interimResults=true;r.maxAlternatives=5;
   r.onresult=function(e){
     for(var i=e.resultIndex;i<e.results.length;i++){
-      var res=e.results[i];if(!res.isFinal)continue;
+      var res=e.results[i];
       var alts=[];for(var j=0;j<res.length;j++)alts.push(res[j].transcript);
-      voiceHear(alts);
+      voiceHear(alts,!res.isFinal);
     }
   };
   r.onstart=function(){voice.started=true;if(!voice.msg||/Ouvindo|Iniciando/.test(voice.msg))voiceSet('Microfone ligado. Diga um comando.')};
@@ -1827,12 +1929,16 @@ function voiceStart(){
     if(voice.starts.length>8){voice.on=false;voiceSet('Voz desligada: o microfone ficou reiniciando. Toque em Voz para ligar de novo.');render();return}
     setTimeout(voiceStart,250);
   };
-  voice.rec=r;voice.started=false;
+  voice.rec=r;voice.started=false;wakeOn();
   try{r.start()}catch(e){voice.rec=null;voiceSet('Não foi possível iniciar o microfone: '+(e&&e.message||e))}
   clearTimeout(voice.chk);
   voice.chk=setTimeout(function(){if(voice.on&&voice.rec===r&&!voice.started)voiceSet('O microfone não iniciou. Confira se o Chrome pediu permissão e se você está no site (e não dentro de outro app).')},5000);
 }
+var wake=null;
+function wakeOn(){try{if(navigator.wakeLock&&!wake)navigator.wakeLock.request('screen').then(function(l){wake=l;l.addEventListener('release',function(){wake=null})}).catch(function(){})}catch(e){}}
+function wakeOff(){try{if(wake){wake.release();wake=null}}catch(e){}}
 function voiceStop(){
+  wakeOff();
   voice.on=false;
   var r=voice.rec;voice.rec=null;
   if(r){r.onend=null;try{r.stop()}catch(e){}}
@@ -1842,9 +1948,9 @@ function voiceBtn(){
   return '<div class="row2"><button type="button" class="btn ghost voice-b'+(voice.on?' on':'')+'" data-act="voice-toggle" aria-pressed="'+voice.on+'">Voz: '+(voice.on?'ligada':'desligada')+'</button><button type="button" class="btn ghost" data-act="voice-help">Comandos</button></div><p class="hint" id="voice-st" role="status">'+esc(voice.msg)+'</p>';
 }
 function voiceHelp(){
-  openSheet('<h2>Comandos de voz</h2><p class="hint">Fale perto do microfone, em português. Funciona só com internet. Com o jogo alto ou chat de voz, ele pode errar ou entender coisas que você não pediu.</p>'+
-    '<ul class="vhelp"><li><b>“próximo round”</b>, “passou”: avança o round</li><li><b>“round 50”</b>, “rodada sessenta”, “ir para o round 75”: vai direto para esse round</li><li><b>“voltar round”</b>: volta um round</li><li><b>“pausar”</b> e <b>“retomar”</b></li>'+
-    '<li><b>“chiclete 3”</b>: marca o chiclete 3 do pack (do 1 ao 5)</li><li>“chiclete 3 X” ou “chiclete 3 confere”</li><li>“desmarcar chiclete 3”</li><li>“modo X” e “modo confere”: como marcar por padrão</li>'+
+  openSheet('<h2>Comandos de voz</h2><p class="hint">Fale perto do microfone, em português. Funciona só com internet. Com a voz ligada, a tela fica acesa e o celular vibra quando entende um comando. Para ouvir melhor: use fone com microfone, fale curto e claro, e abaixe o volume do jogo. Com o jogo alto ou chat de voz, ele pode errar ou entender coisas que você não pediu.</p>'+
+    '<ul class="vhelp"><li><b>Avançar round:</b> “próximo round”, “passou”, “passa”, “passou round”, “passa round”, “avançar”, “próximo”, “seguinte”, “novo round”, “round acabou”, “terminou”, “vai”, “bora”, “mais um”. Qualquer frase com “round” e “passou”, “acabou” ou “terminou” também vale.</li><li><b>“round 50”</b>, “rodada sessenta”, “ir para o round 75”: vai direto para esse round</li><li><b>“voltar round”</b>: volta um round</li><li><b>“pausar”</b> e <b>“retomar”</b></li>'+
+    '<li><b>“chiclete 3”</b>: marca o chiclete 3 do pack (do 1 ao 5)</li><li>“chiclete 3 X” ou “chiclete 3 confere”</li><li>“desmarcar chiclete 3”</li><li><b>Pelo nome:</b> diga o nome do chiclete em português, como “Sempre Feito Rapidamente”, ou “usei Coagulante” (com “X” ou “confere” no final, se quiser). Só vale para os chicletes que estão no pack. “Desmarcar Coagulante” tira a marca.</li><li>“modo X” e “modo confere”: como marcar por padrão</li>'+
     '<li><b>“peguei perk 1”</b>, “peguei perk 2”…: marca o perk pelo número (o número aparece no canto de cada perk)</li><li>“peguei Juggernog”, “perk Speed Cola”: marca pelo nome</li><li>“perdi perk 1” ou “perdi Juggernog”: desmarca</li>'+
     '<li>“abrir chicletes”, “abrir perks”, “abrir mapa”, “fechar”</li><li>“iniciar partida”: depois de escolher o mapa</li><li><b>“finalizar partida”</b>, depois “confirmar”</li></ul>'+
     '<div class="btns"><button type="button" class="btn primary" data-act="close">Fechar</button></div>',function(){},'view');
