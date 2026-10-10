@@ -1,0 +1,1502 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F1419">
+<meta name="color-scheme" content="light dark">
+<title>Caderno de Rounds</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: caderno de campo em abas (estratégias, rotas, tempo, chicletes), coluna única de até 680px, barra de abas fixa embaixo. Ousadia concentrada no cronômetro com faixa de alerta. */
+:root{
+  --bg:#E5E8EA;
+  --surface:#F3F5F6;
+  --surface-2:#D9DEE1;
+  --fg:#141A20;
+  --muted:#56626C;
+  --line:#C3CBD0;
+  --accent:#E8A810;
+  --accent-ink:#141A20;
+  --accent-text:#7A4E00;
+  --good:#1F7A4D;
+  --bad:#B3362B;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1419;--surface:#171E26;--surface-2:#1F2831;--fg:#E7ECEF;--muted:#93A0AB;--line:#2B3640;
+    --accent:#F2B01E;--accent-ink:#141A20;--accent-text:#F2B01E;--good:#4CC58A;--bad:#EF6B5E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1419;--surface:#171E26;--surface-2:#1F2831;--fg:#E7ECEF;--muted:#93A0AB;--line:#2B3640;
+  --accent:#F2B01E;--accent-ink:#141A20;--accent-text:#F2B01E;--good:#4CC58A;--bad:#EF6B5E;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--body);padding-inline:16px;padding-block:0 96px;-webkit-text-size-adjust:100%}
+.wrap{max-width:680px;margin-inline:auto}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+h2,h3,p{margin:0}
+
+/* cabeçalho */
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-block:18px 12px}
+.brand{font:800 28px/1 var(--display);letter-spacing:.04em;text-transform:uppercase}
+.brand small{display:block;font:500 11px/1 var(--mono);letter-spacing:.14em;color:var(--muted);margin-bottom:6px}
+.sync{font:500 11px/1.3 var(--mono);color:var(--muted);text-align:right}
+
+/* filtro de mapa */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-block:4px 10px;scrollbar-width:thin}
+.chip{flex:none;min-height:36px;padding:0 14px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font:500 13px var(--body);color:var(--fg)}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.note{font-size:13px;color:var(--muted);padding-block:2px 6px}
+.link{background:none;border:0;padding:0;min-height:32px;color:var(--accent-text);text-decoration:underline}
+.link.danger{color:var(--bad)}
+
+/* barra de abas */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+.tabs .in{max-width:680px;margin-inline:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.tab{min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:0;border-radius:8px;color:var(--muted);font:600 11px/1 var(--body)}
+.tab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-current="page"]{background:var(--surface-2);color:var(--fg)}
+.tab[aria-current="page"] svg{color:var(--accent-text)}
+
+/* seções e botões */
+.sec-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-block:14px 12px}
+.sec-h h2{font:800 24px/1.1 var(--display);letter-spacing:.03em;text-transform:uppercase;text-wrap:balance}
+.sec-h.sub{margin-block:26px 10px}
+.sec-h.sub h3{font:700 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.btn{min-height:44px;padding:0 18px;border-radius:6px;border:1px solid var(--line);background:var(--surface);font:600 14px var(--body)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent}
+.btn.sm{min-height:38px;padding:0 14px;font-size:13px}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.stack{display:grid;gap:10px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:8px;padding:22px 16px;display:grid;gap:8px;justify-items:start}
+.empty .e-t{font:700 17px var(--body)}
+.empty p{color:var(--muted);max-width:52ch}
+
+/* cartões */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+.card h3{font:700 17px/1.25 var(--body);margin-block:8px 6px;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font:500 11px/1 var(--mono);padding:4px 7px;border:1px solid var(--line);border-radius:4px;color:var(--muted);white-space:nowrap}
+.tag.map{color:var(--accent-text);border-color:var(--accent-text)}
+.tag.ex{border-style:dashed}
+.tag.best{color:var(--good);border-color:var(--good);margin-left:8px;font-style:normal}
+.plan{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--fg)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.muted{color:var(--muted)}
+
+/* estratégias */
+.strat{display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px}
+.plate{align-self:start;display:grid;justify-items:center;gap:2px;padding:10px 4px;background:var(--surface-2);border-radius:6px}
+.plate small{font:500 10px/1 var(--mono);letter-spacing:.14em;color:var(--muted)}
+.plate b{font:800 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.plate b.long{font-size:21px}
+.cover-wrap{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px 10px;margin-bottom:12px}
+.cover{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:var(--g,2px);height:14px}
+.cover i{background:var(--surface-2);border-radius:1px}
+.cover i.on{background:var(--accent)}
+.ticks{position:relative;height:18px;font:500 10px/1 var(--mono);color:var(--muted)}
+.ticks span{position:absolute;top:5px;transform:translateX(-50%)}
+.ticks span:first-child{transform:none}
+.cover-cap{font-size:13px;color:var(--muted)}
+
+/* rotas */
+.r-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.prog{font:600 13px var(--mono);color:var(--muted);padding-top:4px}
+.path{list-style:none;margin:14px 0 0;padding:0}
+.step{position:relative;display:grid;grid-template-columns:38px minmax(0,1fr);gap:12px;padding-bottom:14px}
+.step:not(:last-child)::before{content:"";position:absolute;left:18px;top:38px;bottom:0;width:2px;background:var(--line)}
+.node{width:38px;height:38px;border-radius:50%;border:2px solid var(--fg);background:var(--surface);font:600 14px var(--mono);color:var(--fg);padding:0}
+.step.done .node{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.step.done .st-body{opacity:.6}
+.st-p{font-weight:600;overflow-wrap:anywhere;padding-top:7px}
+.st-a{color:var(--muted);overflow-wrap:anywhere}
+
+/* cronômetro */
+.clock{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.clock::before{content:"";display:block;height:10px;background:repeating-linear-gradient(135deg,var(--accent) 0 10px,var(--bg) 10px 20px)}
+.clock .in{padding:16px;display:grid;gap:14px}
+.c-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.cap{display:block;font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.rno{font:800 44px/1 var(--display);font-variant-numeric:tabular-nums}
+.c-meta{display:grid;gap:6px;justify-items:end;text-align:right;font:500 12px var(--mono);color:var(--muted)}
+.big{font:600 clamp(52px,17vw,84px)/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.clock.paused .big{opacity:.5}
+.c-sub{display:flex;gap:16px;align-items:baseline;font:500 14px var(--mono);color:var(--muted)}
+.c-sub b{color:var(--fg);font-weight:600}
+.pz{color:var(--accent-text);font-weight:600;letter-spacing:.1em}
+.next{min-height:68px;font:800 24px var(--display);letter-spacing:.06em;text-transform:uppercase}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.row3 .btn{padding:0 6px}
+.hint{font-size:13px;color:var(--muted)}
+.splits{display:grid;border-top:1px solid var(--line)}
+.split{display:grid;grid-template-columns:52px 1fr auto;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font:500 14px var(--mono);font-variant-numeric:tabular-nums}
+.split span:first-child{color:var(--muted)}
+.fast{color:var(--good)}
+.slow{color:var(--bad)}
+.run{padding:0}
+.run summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto 14px;gap:12px;align-items:center;padding:12px 14px;cursor:pointer;min-height:56px}
+.run summary::-webkit-details-marker{display:none}
+.r-no{font:800 26px/1 var(--display);min-width:46px}
+.r-main{display:grid;min-width:0}
+.r-main b{overflow-wrap:anywhere}
+.r-main small{color:var(--muted)}
+.r-tot{font:600 15px var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-top:-4px}
+.run[open] .chev{transform:rotate(-135deg);margin-top:4px}
+.r-body{padding:0 14px 14px;display:grid;gap:12px;border-top:1px solid var(--line);padding-top:12px}
+.splits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px;font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+.splits-grid span{background:var(--surface-2);border-radius:4px;padding:5px 8px}
+.splits-grid b{color:var(--muted);font-weight:500;margin-right:4px}
+
+/* chicletes */
+.g-row{display:grid;gap:6px;padding-block:10px;border-top:1px solid var(--line)}
+.g-row:first-of-type{border-top:0}
+.g-n{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.g-n b{overflow-wrap:anywhere}
+.g-n small{font:500 12px var(--mono);color:var(--muted);white-space:nowrap}
+.bar{display:flex;height:8px;border-radius:2px;overflow:hidden;background:var(--surface-2)}
+.bar i{display:block}
+.g-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.g-h b{font-size:16px;overflow-wrap:anywhere}
+.pill{font:600 12px/1 var(--body);padding:6px 9px;border-radius:4px;border:1px solid currentColor;white-space:nowrap}
+.pill.ajudou{color:var(--good)}
+.pill.neutro{color:var(--muted)}
+.pill.nao{color:var(--bad)}
+
+/* formulários */
+.sheet{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.scrim{position:absolute;inset:0;background:rgba(5,8,12,.6)}
+.panel{position:relative;width:100%;max-width:560px;max-height:92%;overflow-y:auto;display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px 12px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+@media (min-width:700px){.sheet{align-items:center}.panel{border-radius:12px}}
+.sheet.sq{align-items:center;padding:0 12px}
+.sheet.sq .panel{width:min(100%,560px);max-height:88%;border-radius:14px}
+button,[data-act],summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.panel h2{font:800 24px/1.1 var(--display);letter-spacing:.03em;text-transform:uppercase}
+label{display:grid;gap:6px;font:500 12px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+input,select,textarea{width:100%;min-width:0;font:16px/1.4 var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px;min-height:44px;letter-spacing:0;text-transform:none}
+textarea{resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.err{color:var(--bad);font-weight:500;min-height:0}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.opt{position:relative;display:block;font:inherit;letter-spacing:0;text-transform:none}
+.opt input{position:absolute;opacity:0;inset:0}
+.opt span{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font:600 13px var(--body);color:var(--fg);text-align:center}
+.opt input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.opt input:focus-visible+span{outline:2px solid var(--accent-text);outline-offset:2px}
+.steps-h{font:700 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+#steps{display:grid;gap:10px}
+.srow{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:8px;align-items:start;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+.sn{font:600 13px var(--mono);color:var(--muted);padding-top:12px}
+.sf{display:grid;gap:8px;min-width:0}
+.sf input{background:var(--surface)}
+.sbtn{display:grid;gap:4px}
+.ib{width:38px;height:38px;border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:0;font-size:15px}
+/* pack de chicletes */
+.pack{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;gap:12px}
+.pk-h{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pk-h h3{font:800 20px/1 var(--display);letter-spacing:.04em;text-transform:uppercase}
+.modes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.slot{display:grid;gap:2px;justify-items:center;align-content:start;min-width:0}
+.pt{position:relative;width:100%;aspect-ratio:1/1;padding:0;border:2px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden}
+.pt.blank{display:flex;align-items:center;justify-content:center;border-style:dashed;color:var(--muted);font-size:28px}
+.pt.m-x{border-color:var(--bad)}
+.pt.m-ok{border-color:var(--good)}
+.pt .gt-img,.pt .gt-ph{border-radius:0;height:100%}
+.mk{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 44px/1 var(--display);color:#fff}
+.pt.m-x .mk{background:rgba(179,54,43,.68)}
+.pt.m-ok .mk{background:rgba(31,122,77,.68)}
+.gt-img,.gt-ph{display:block;width:100%;aspect-ratio:1/1;border-radius:8px;object-fit:cover}
+.gt-ph{display:flex;align-items:center;justify-content:center;font:800 24px/1 var(--display);letter-spacing:.04em;color:#fff}
+.sname,.ln{font:500 11px/1.25 var(--body);text-align:center;overflow-wrap:anywhere;max-width:100%}
+.sname{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.slot .link{font-size:12px;min-height:30px}
+.pk-msg{min-height:1.5em;color:var(--accent-text);font-weight:600}
+.pk-foot{display:flex;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;font:500 12px var(--mono);color:var(--muted)}
+.pk-foot b{color:var(--fg)}
+.pk-foot .link{font-size:12px}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px}
+.lib-t{display:grid;gap:4px;justify-items:center;align-content:start;padding:6px;border:2px solid transparent;border-radius:12px;background:none;text-align:center}
+.lib-t.sel{border-color:var(--accent)}
+.lib-form{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;align-items:start}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.filebtn{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;font:600 14px/1.2 var(--body);letter-spacing:0;text-transform:none;color:var(--accent-ink);cursor:pointer}
+.filebtn:focus-within{outline:2px solid var(--accent-text);outline-offset:2px}
+.pack+.clock{margin-top:12px}
+.cat-list{display:grid}
+.cat-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.cat-t{width:48px;height:48px;font-size:16px}
+.cat-i{display:grid;gap:2px;min-width:0}
+.cat-i b{overflow-wrap:anywhere}
+.cat-i small{color:var(--muted);font:500 11px var(--mono)}
+.cat-i span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+body.hud{padding-block:0 24px}
+.hud .top,.hud .tabs{display:none}
+.hud #app{display:grid;gap:12px;padding-top:12px}
+.hud-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.hud-time{text-align:right}
+.hud-top .big{font-size:clamp(40px,13vw,64px)}
+.hud-top .rno{font-size:56px}
+.hud-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.perks{display:grid;gap:10px}
+.perk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}
+.perk{display:grid;justify-items:center;align-content:start;gap:4px;min-width:0;min-height:40px;padding:6px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font:600 12px/1.15 var(--body);color:var(--muted);text-align:center}
+.perk .pk-i{width:44px;height:44px;border-radius:8px;object-fit:cover;display:block;opacity:.55}
+.perk.on .pk-i{opacity:1}
+.perk .pk-ph{display:grid;place-items:center;background:var(--surface-2);color:var(--muted);font:800 20px var(--display)}
+.perk .pk-n{overflow-wrap:anywhere;hyphens:auto}
+.pk-rows{display:grid;gap:10px;margin:8px 0 12px}
+.pk-row{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:start;padding:8px;border:1px solid var(--line);border-radius:8px}
+.pk-pic .gt-img,.pk-pic .gt-ph{width:64px;height:64px;aspect-ratio:auto}
+.pk-none{display:grid;place-items:center;background:var(--surface-2);color:var(--muted);font-size:11px;text-align:center}
+.pk-fields{display:grid;gap:6px;min-width:0}
+.pk-fields input[type=file]{font-size:13px;max-width:100%}
+.pk-acts{display:flex;gap:12px;flex-wrap:wrap}
+.perk.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.launch{display:grid;gap:8px;width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);text-align:left;min-height:64px}
+.launch .lh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.launch .lh b{font:800 20px/1 var(--display);letter-spacing:.04em;text-transform:uppercase}
+.launch-map{width:100%;aspect-ratio:16/7;object-fit:cover;border-radius:6px;display:block}
+.mini-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.mini{position:relative;aspect-ratio:1/1;border-radius:8px;overflow:hidden;border:2px solid var(--line);background:var(--bg);display:block}
+.mini .gt-img,.mini .gt-ph{height:100%;border-radius:0;font-size:14px}
+.mini.blank{display:grid;place-items:center;border-style:dashed;color:var(--muted);font-size:20px}
+.mini.m-x{border-color:var(--bad)}.mini.m-ok{border-color:var(--good)}
+.mini i{position:absolute;inset:0;display:grid;place-items:center;font:800 24px var(--display);font-style:normal;color:#fff;background:rgba(0,0,0,.55)}
+.map-t .gt-img,.map-t .gt-ph{aspect-ratio:16/10}
+.mapthumb{position:relative;display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface-2);aspect-ratio:16/7}
+.mapthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.mt-l{position:absolute;left:8px;bottom:8px;font:600 11px var(--mono);padding:3px 7px;border-radius:4px;background:rgba(0,0,0,.65);color:#fff}
+.pinlayer{position:absolute;inset:0;pointer-events:none}
+.pin{position:absolute;transform:translate(-50%,-50%) scale(var(--inv,1));width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);border:2px solid #000;font:700 11px/18px var(--mono);text-align:center}
+.pin.sm{width:10px;height:10px;font-size:0;border-width:1px}
+.mapbox{position:relative;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;height:min(58vh,520px);border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.mapwrap{position:absolute;left:0;top:0;transform-origin:0 0}
+.mapbox.pinning{cursor:crosshair;outline:2px dashed var(--accent);outline-offset:-2px}
+.mapimg{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none}
+.mapbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mz{font:600 13px var(--mono);min-width:48px;text-align:center}
+.pinlist{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.pinlist li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center}
+.pastebox{min-height:44px;padding:10px 12px;border:1px dashed var(--line);border-radius:6px;color:var(--muted);font-size:13px;display:flex;align-items:center}
+.hud-col{display:contents}
+@media (orientation:landscape){.mapbox{height:min(64vh,520px)}}
+@media (orientation:landscape) and (min-width:600px){
+  body.hud{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+  .hud .wrap{max-width:none}
+  .hud #app{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) minmax(0,1fr);align-items:start;gap:14px;padding-top:8px}
+  .hud-col{display:grid;gap:10px;align-content:start}
+  .hud-top{flex-direction:column;align-items:flex-start;gap:6px}
+  .hud-time{text-align:left}
+  .hud-top .rno{font-size:44px}
+  .hud-top .big{font-size:min(15vh,60px)}
+  .hud .next{min-height:56px;font-size:21px}
+  .launch{padding:10px}
+  .hud .pack{padding:10px}
+  .hud .perk-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .hud .perk{padding:5px 2px;font-size:10.5px}
+  .hud .perk .pk-i{width:min(34px,7vh);height:min(34px,7vh)}
+}
+@media (prefers-reduced-motion:no-preference){.chev{transition:transform .15s}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><small>ZOMBIES · ANOTAÇÕES DE PARTIDA</small>Caderno de Rounds</div>
+    <div class="sync" id="sync" aria-live="polite"></div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<nav class="tabs" aria-label="Seções">
+  <div class="in">
+    <button class="tab" data-act="tab" data-v="est"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM7 5.5H6a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6.5a1 1 0 0 0-1-1h-1"/><path d="M8.5 12h7M8.5 16h5"/></svg>Estratégias</button>
+    <button class="tab" data-act="tab" data-v="rotas"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="6" r="2.2"/><path d="M8.2 18H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.8"/></svg>Rotas</button>
+    <button class="tab" data-act="tab" data-v="tempo"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5M9.5 3h5"/></svg>Tempo</button>
+    <button class="tab" data-act="tab" data-v="gums"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M8.5 10.5a4 4 0 0 1 3-2.5"/></svg>Chicletes</button>
+  </div>
+</nav>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="scrim" data-act="close"></div>
+  <form class="panel" id="panel" aria-modal="true" role="dialog"></form>
+</div>
+<datalist id="maps"></datalist>
+<datalist id="gumnames"></datalist>
+
+<script>
+(function(){
+'use strict';
+var LS='caderno-rounds-v1';
+var KNOWN=['Nacht der Untoten','Verrückt','Shi No Numa','Der Riese','Kino der Toten','Ascension','Call of the Dead','Shangri-La','Moon','Nuketown Zombies','Die Rise','Mob of the Dead','Buried','Origins','TranZit','Shadows of Evil','The Giant','Der Eisendrache','Zetsubou No Shima','Gorod Krovi','Revelations'];
+var RES={ajudou:'Ajudou',neutro:'Neutro',nao:'Não ajudou'};
+var CATS=[['classic','Clássicos'],['mega','Mega'],['rare','Mega raros'],['ultra','Ultra raros'],['whim','Cosméticos']];
+var CAT_HUE={classic:210,mega:275,rare:30,ultra:350,whim:150};
+var GUMS=[['classic','Always Done Swiftly','Sempre Feito Rapidamente','Mira e troca de arma mais rápidas por 3 rounds'],['classic','Arms Grace','Graça das Armas','Renasce com as armas que tinha ao cair'],['classic','Coagulant','Coagulante','Tempo de sangramento maior'],['classic','In Plain Sight','À Vista de Todos','Zumbis ignoram você (2×, 10 s cada)'],['classic','Stock Option','Opção de Estoque','Munição vem do estoque, não do pente (2:30)'],['classic','Impatient','Impaciente','Renasce perto do fim do round atual'],['classic','Sword Flay','Esfolada de Espada','Corpo a corpo causa 5× de dano (2:30)'],['classic','Anywhere But Here!','Qualquer Lugar, Menos Aqui!','Teleporte aleatório com explosão de atordoamento (2×)'],['classic','Danger Closest','Perigo Mais Próximo','Sem dano próprio de explosivos por 3 rounds'],['classic','Armamental Accomplishment','Conquista Armamental','Troca de arma, corpo a corpo e uso de itens mais rápidos por 3 rounds'],['classic','Firing On All Cylinders','A Todo Vapor','Permite atirar correndo por 3 rounds'],['classic','Arsenal Accelerator','Acelerador de Arsenal','Carrega a arma especial mais rápido por 10 min'],['classic','Lucky Crit','Crítico da Sorte','Melhor chance de proc da munição alternativa por 1 round'],['classic','Now You See Me','Agora Você Me Vê','Todos os zumbis perseguem só você (2×, 10 s)'],['classic','Alchemical Antithesis','Antítese Alquímica','Cada 10 pontos ganhos vira 1 munição de reserva (2×, 60 s)'],['mega','Aftertaste','Retrogosto','Mantém perks ao reviver por 3 rounds'],['mega','Burned Out','Queimado','Próximo acerto incendeia zumbis próximos (2 acertos)'],['mega','Dead of Nuclear Winter','Morte no Inverno Nuclear','Gera uma Nuke (2×)'],['mega','Ephemeral Enhancement','Melhoria Efêmera','Arma na mão recebe Pack-a-Punch por 60 s (2×)'],['mega','I\'m Feeling Lucky','Estou com Sorte','Dropa um power-up aleatório (2×)'],['mega','Immolation Liquidation','Liquidação por Imolação','Dropa uma Fire Sale (3×)'],['mega','Licensed Contractor','Empreiteiro Licenciado','Dropa um Carpenter (3×)'],['mega','Phoenix Up','Fênix, Levante-se','Revive todos os companheiros com perks'],['mega','Pop Shocks','Choque Estourado','Corpo a corpo eletrocuta (5×)'],['mega','Respin Cycle','Ciclo de Giro','Gira a Mystery Box novamente (2×)'],['mega','Unquenchable','Insaciável','Um slot extra de perk quando estiver com 4'],['mega','Who\'s Keeping Score?','Quem Está Contando os Pontos?','Dropa Pontos em Dobro (2×)'],['mega','Idle Eyes','Olhos Ociosos',''],['mega','Flavor Hexed','Sabor Enfeitiçado',''],['mega','Board Games','Jogos de Tabuleiro',''],['mega','Board To Death','Tábuas até a Morte',''],['mega','Crawl Space','Espaço para Rastejar',''],['mega','Fatal Contraption','Engenhoca Fatal',''],['mega','Unbearable','Insuportável',''],['mega','Disorderly Combat','Combate Desordenado',''],['mega','Slaughter Slide','Deslize Sangrento',''],['mega','Mind Blown','Mente Explodida',''],['rare','Cache Back','Dinheiro de Volta','Dropa Max Ammo'],['rare','Kill Joy','Estraga-Prazeres','Dropa Insta-Kill (2×)'],['rare','On the House','Por Conta da Casa','Dropa um frasco de perk aleatório'],['rare','Wall Power','Poder da Parede','A próxima compra na parede vem com Pack-a-Punch'],['rare','Undead Man Walking','Morto-Vivo Caminhando',''],['rare','Fear in Headlights','Medo nos Faróis',''],['rare','Temporal Gift','Presente Temporal',''],['rare','Crate Power','Poder da Caixa',''],['rare','Bullet Boost','Impulso de Balas',''],['rare','Extra Credit','Crédito Extra',''],['rare','Soda Fountain','Fonte de Refrigerante',''],['ultra','Killing Time','Matando o Tempo','Congela todos os zumbis por 20 s; os atingidos morrem'],['ultra','Perkaholic','Viciado em Perks','Dá todos os perks do mapa'],['ultra','Near Death Experience','Experiência de Quase Morte','Revive por proximidade com perks (3 rounds)'],['ultra','Reign Drops','Gotas do Reinado','Dropa todos os power-ups principais de uma vez (2×)'],['ultra','Shopping Free','Compras Grátis',''],['ultra','Round Robbin\'','Rodada Roubada',''],['ultra','Head Drama','Drama de Cabeça',''],['ultra','Secret Shopper','Cliente Misterioso',''],['ultra','Profit Sharing','Divisão de Lucros',''],['ultra','Self Medication','Automedicação',''],['ultra','Power Vacuum','Vácuo de Poder',''],['whim','Projectile Vomiting','Vômito em Projétil','Cosmético, sem efeito no jogo'],['whim','Newtonian Negation','Negação Newtoniana','Cosmético, sem efeito no jogo'],['whim','Eye Candy','Deleite para os Olhos','Cosmético, sem efeito no jogo'],['whim','Tone Death','Surdez Tonal','Cosmético, sem efeito no jogo']];
+
+var DEF_PERKS=['Quick Revive','Juggernog','Speed Cola','Double Tap','Stamin-Up','Mule Kick',"Widow's Wine",'Electric Cherry','Deadshot Daiquiri','PhD Flopper'];
+var $=function(s){return document.querySelector(s)};
+var app=$('#app'),sheet=$('#sheet'),panel=$('#panel');
+var uid=function(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var arr=function(a){return Array.isArray(a)?a:[]};
+
+function normPack(p){
+  p=(p&&typeof p==='object')?p:{};
+  var s=arr(p.slots).slice(0,5);
+  while(s.length<5)s.push({gid:null,mark:''});
+  return {
+    slots:s.map(function(x){x=x||{};return {gid:x.gid||null,mark:(x.mark==='ok'||x.mark==='x')?x.mark:''}}),
+    mode:p.mode==='ok'?'ok':'x',
+    cycles:+p.cycles||0
+  };
+}
+function normPerks(p){
+  p=(p&&typeof p==='object')?p:{};
+  var names=Array.isArray(p.names)?p.names.filter(function(x){return typeof x==='string'&&x.trim()}).slice(0,30):DEF_PERKS.slice();
+  var on={};
+  if(p.on&&typeof p.on==='object')names.forEach(function(n){if(p.on[n])on[n]=true});
+  return {names:names,on:on};
+}
+function normMaps(m){
+  var out={};
+  if(m&&typeof m==='object')Object.keys(m).forEach(function(k){
+    var v=m[k];
+    if(v&&typeof v==='object')out[k]={pins:arr(v.pins).filter(function(x){return x&&typeof x.x==='number'&&typeof x.y==='number'}).slice(0,60)};
+  });
+  return out;
+}
+function norm(d){
+  d=d||{};
+  return {strategies:arr(d.strategies),routes:arr(d.routes),runs:arr(d.runs),gums:arr(d.gums),
+    gumLib:arr(d.gumLib).filter(function(g){return g&&g.id}),pack:normPack(d.pack),perks:normPerks(d.perks),maps:normMaps(d.maps),
+    timer:(d.timer&&typeof d.timer==='object')?d.timer:null};
+}
+function seed(){
+  var m='Mapa de exemplo';
+  return norm({
+    strategies:[
+      {id:uid(),example:true,map:m,from:1,to:10,title:'Abertura segura',tags:['Abertura'],
+       plan:'• Abrir só as portas necessárias\n• Comprar a primeira arma de parede\n• Guardar pontos para a caixa misteriosa\n\nItem de exemplo: edite ou remova.'},
+      {id:uid(),example:true,map:m,from:11,to:25,title:'Kiting em círculo',tags:['Kiting','Munição'],
+       plan:'• Escolher um circuito amplo com poucas quinas\n• Manter distância e guardar granadas para emergências\n• Reabastecer munição a cada 5 rounds'}
+    ],
+    routes:[{id:uid(),example:true,map:m,name:'Rota de abertura',steps:[
+      {id:uid(),place:'Spawn',action:'Pegar a pistola e sair pela porta principal',round:1,done:false},
+      {id:uid(),place:'Primeira porta',action:'Abrir quando tiver pontos',round:2,done:false},
+      {id:uid(),place:'Parede de arma',action:'Comprar a arma principal',round:3,done:false},
+      {id:uid(),place:'Caixa misteriosa',action:'Girar quando tiver pontos de sobra',round:5,done:false}]}],
+    gums:[{id:uid(),example:true,map:m,name:'Chiclete de exemplo',round:12,result:'ajudou',
+      notes:'Apague este e registre o primeiro que você usar.',date:new Date().toISOString()}]
+  });
+}
+function loadLocal(){try{var r=localStorage.getItem(LS);return r?norm(JSON.parse(r)):null}catch(e){return null}}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(st))}catch(e){}}
+
+var st=loadLocal()||seed();
+var ui={tab:'est',map:'',armed:'',touched:false,open:new Set(),libMsg:'',packMsg:'',pickSlot:null,hud:false,cat:'classic',mapName:'',mapZoom:1,pinMode:false};
+
+/* imagens dos chicletes: guardadas à parte (cada imagem é pequena e vira um documento próprio na conta) */
+var LSI='caderno-rounds-img-v1',imgs={};
+try{imgs=JSON.parse(localStorage.getItem(LSI)||'{}')||{}}catch(e){imgs={}}
+function saveImgsLocal(){try{localStorage.setItem(LSI,JSON.stringify(imgs))}catch(e){}}
+function putImg(gid,u){
+  imgs[gid]=u;saveImgsLocal();
+  if(ref)ref.collection('imgs').doc(gid).set({u:u}).catch(function(){setSync('err')});
+}
+function delImg(gid){
+  delete imgs[gid];saveImgsLocal();
+  if(ref)ref.collection('imgs').doc(gid).delete().catch(function(){});
+}
+function toThumb(file){
+  return new Promise(function(res,rej){
+    var fr=new FileReader();
+    fr.onerror=function(){rej()};
+    fr.onload=function(){
+      var im=new Image();
+      im.onerror=function(){rej()};
+      im.onload=function(){
+        var S=160,c=document.createElement('canvas');c.width=S;c.height=S;
+        var x=c.getContext('2d'),m=Math.min(im.width,im.height);
+        x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);
+        var u=c.toDataURL('image/webp',.85);
+        if(u.indexOf('data:image/webp')!==0)u=c.toDataURL('image/jpeg',.88);
+        res(u);
+      };
+      im.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ---------- salvamento ---------- */
+var ref=null,saving=false,dirty=false,saveTm=0,armTm=0;
+function setSync(k){
+  var t={local:'Salvo neste aparelho',saving:'Salvando…',ok:'Salvo na sua conta',err:'Sem conexão com a conta. Cópia salva neste navegador.'}[k];
+  var el=$('#sync');if(el)el.textContent=t;
+}
+function touch(){
+  ui.touched=true;saveLocal();dirty=true;
+  setSync(ref?'saving':'local');
+  clearTimeout(saveTm);saveTm=setTimeout(flush,500);
+}
+async function flush(){
+  if(!ref){dirty=false;setSync('local');return}
+  if(saving)return;
+  saving=true;
+  while(dirty){
+    dirty=false;
+    try{await ref.set(JSON.parse(JSON.stringify(st)));setSync('ok')}
+    catch(e){setSync('err')}
+  }
+  saving=false;
+}
+async function initDb(){
+  try{
+    if(!window.claude||!window.claude.use)return;
+    var parts=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    var db=parts[0],user=parts[1];
+    if(!db||!user)return;
+    var id=await user.id();
+    if(!id)return;
+    ref=db.doc('data/users/'+id+'/caderno');
+    var snap=await ref.get();
+    if(snap.exists){st=norm(snap.data());saveLocal();if(sheet.hidden)render();setSync('ok')}
+    else{dirty=true;await flush()}
+    syncImgs();
+  }catch(e){ref=null;setSync('local')}
+}
+async function syncImgs(){
+  try{
+    var snap=await ref.collection('imgs').get();
+    var have={};
+    snap.docs.forEach(function(d){var v=d.data();if(v&&v.u){imgs[d.id]=v.u;have[d.id]=1}});
+    saveImgsLocal();
+    if(sheet.hidden)render();
+    var ids=Object.keys(imgs).filter(function(g){return !have[g]&&(g.indexOf('mp_')===0||st.gumLib.some(function(x){return x.id===g}))});
+    for(var i=0;i<ids.length;i++){await ref.collection('imgs').doc(ids[i]).set({u:imgs[ids[i]]})}
+  }catch(e){}
+}
+async function pull(){
+  if(!ref||saving||dirty||!sheet.hidden)return;
+  try{
+    var snap=await ref.get();
+    if(snap.exists&&!dirty&&JSON.stringify(norm(snap.data()))!==JSON.stringify(st)){st=norm(snap.data());saveLocal();render();syncImgs()}
+  }catch(e){}
+}
+
+/* ---------- utilidades ---------- */
+function fmt(ms){
+  var s=Math.floor(Math.max(0,ms)/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;
+  var p=function(n){return String(n).padStart(2,'0')};
+  return h?h+':'+p(m)+':'+p(x):m+':'+p(x);
+}
+function fdate(iso){try{return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}catch(e){return ''}}
+function allMaps(){
+  var s=new Set();
+  [].concat(st.strategies,st.routes,st.runs,st.gums).forEach(function(x){if(x.map)s.add(x.map)});
+  return Array.from(s).sort(function(a,b){return a.localeCompare(b,'pt')});
+}
+function inMap(x){return !ui.map||x.map===ui.map}
+function hasExamples(){return [].concat(st.strategies,st.routes,st.gums).some(function(x){return x.example})}
+function lastMap(){return (st.runs[0]&&st.runs[0].map)||ui.map||''}
+function bestRun(map){
+  var r=st.runs.filter(function(x){return x.map===map});
+  if(!r.length)return null;
+  return r.reduce(function(b,x){return (x.round>b.round||(x.round===b.round&&x.total<b.total))?x:b});
+}
+var delBtn=function(k,id){
+  var on=ui.armed===k+':'+id;
+  return '<button class="btn sm '+(on?'danger':'ghost')+'" data-act="del" data-k="'+k+'" data-id="'+id+'">'+(on?'Confirmar exclusão':'Excluir')+'</button>';
+};
+function empty(t,p,act,label){
+  return '<div class="empty"><p class="e-t">'+t+'</p><p>'+p+'</p><button class="btn primary" data-act="'+act+'">'+label+'</button></div>';
+}
+function exTag(x){return x.example?'<span class="tag ex">exemplo</span>':''}
+
+/* ---------- cronômetro ---------- */
+var roundMs=function(t){return Math.max(0,(t.pausedAt||Date.now())-t.roundStart)};
+var totalMs=function(t){return t.splits.reduce(function(a,b){return a+b},0)+roundMs(t)};
+function updateTimer(){
+  var t=st.timer;if(!t)return;
+  var a=$('#t-round'),b=$('#t-total');
+  if(a)a.textContent=fmt(roundMs(t));
+  if(b)b.textContent=fmt(totalMs(t));
+}
+setInterval(function(){if((ui.tab==='tempo'||ui.hud)&&st.timer)updateTimer()},250);
+var wl=null,wlBusy=false;
+function keepAwake(){
+  try{
+    if(!st.timer||wl||wlBusy||!navigator.wakeLock||document.visibilityState!=='visible')return;
+    wlBusy=true;
+    navigator.wakeLock.request('screen').then(function(l){wl=l;wlBusy=false;l.addEventListener('release',function(){wl=null})}).catch(function(){wlBusy=false});
+  }catch(e){wlBusy=false}
+}
+
+/* ---------- telas ---------- */
+function chips(){
+  var ms=allMaps();if(!ms.length)return '';
+  return '<div class="chips" role="group" aria-label="Filtrar por mapa"><button class="chip" data-act="map" data-v="" aria-pressed="'+(!ui.map)+'">Todos</button>'+
+    ms.map(function(m){return '<button class="chip" data-act="map" data-v="'+esc(m)+'" aria-pressed="'+(ui.map===m)+'">'+esc(m)+'</button>'}).join('')+'</div>';
+}
+function fillLists(){
+  var ms=Array.from(new Set(KNOWN.concat(allMaps())));
+  $('#maps').innerHTML=ms.map(function(m){return '<option value="'+esc(m)+'">'}).join('');
+  var own=Array.from(new Set(st.gums.map(function(g){return g.name}).concat(st.gumLib.map(function(g){return g.name}))));
+  var seen=new Set(own),opts=own.map(function(m){return '<option value="'+esc(m)+'">'});
+  GUMS.forEach(function(k){
+    if(seen.has(k[2]))return;
+    seen.add(k[2]);
+    opts.push('<option value="'+esc(k[2])+'"'+(k[1]!==k[2]?' label="'+esc(k[1])+'"':'')+'>');
+  });
+  $('#gumnames').innerHTML=opts.join('');
+}
+
+function cover(list){
+  var max=Math.max.apply(null,[30].concat(list.map(function(s){return s.to})));
+  var on=[];for(var i=0;i<=max;i++)on.push(false);
+  list.forEach(function(s){for(var r=s.from;r<=s.to;r++)on[r]=true});
+  var cells='',gaps=[],start=0;
+  for(var r=1;r<=max;r++){
+    cells+='<i class="'+(on[r]?'on':'')+'"></i>';
+    if(!on[r]&&!start)start=r;
+    if(start&&(on[r]||r===max)){var end=on[r]?r-1:r;gaps.push(start===end?String(start):start+'–'+end);start=0}
+  }
+  var ticks='<span style="left:0">1</span>';
+  for(var k=10;k<=max;k+=10)ticks+='<span style="left:'+((k-1)/max*100)+'%">'+k+'</span>';
+  var cap=gaps.length?'Sem plano nos rounds '+gaps.slice(0,4).join(', ')+(gaps.length>4?'…':''):'Todos os rounds até '+max+' têm plano.';
+  return '<div class="cover-wrap"><div class="cover" style="--n:'+max+';--g:'+(max>50?1:2)+'px" role="img" aria-label="'+esc(cap)+'">'+cells+'</div><div class="ticks" aria-hidden="true">'+ticks+'</div><p class="cover-cap">'+esc(cap)+'</p></div>';
+}
+function stratCard(s){
+  var rng=s.from===s.to?String(s.from):s.from+'–'+s.to;
+  return '<article class="card strat"><div class="plate"><small>ROUND</small><b class="'+(rng.length>5?'long':'')+'">'+rng+'</b></div><div style="min-width:0">'+
+    '<div class="meta"><span class="tag map">'+esc(s.map)+'</span>'+exTag(s)+arr(s.tags).map(function(t){return '<span class="tag">'+esc(t)+'</span>'}).join('')+'</div>'+
+    '<h3>'+esc(s.title)+'</h3>'+(s.plan?'<p class="plan">'+esc(s.plan)+'</p>':'')+
+    '<div class="acts"><button class="btn sm ghost" data-act="edit-est" data-id="'+s.id+'">Editar</button>'+delBtn('strategies',s.id)+'</div></div></article>';
+}
+function viewEst(){
+  var list=st.strategies.filter(inMap).sort(function(a,b){return (a.map||'').localeCompare(b.map||'','pt')||a.from-b.from||a.to-b.to});
+  var h='<div class="sec-h"><h2>Estratégias de rounds</h2><button class="btn primary" data-act="new-est">Nova</button></div>';
+  if(ui.map&&list.length)h+=cover(list);
+  if(!list.length)return h+empty('Nenhuma estratégia ainda','Anote o que fazer em cada faixa de rounds: onde ficar, quando comprar, quando trocar de tática.','new-est','Criar a primeira estratégia');
+  return h+'<div class="stack">'+list.map(stratCard).join('')+'</div>';
+}
+
+function routeCard(r){
+  var done=r.steps.filter(function(s){return s.done}).length;
+  var steps=r.steps.length?'<ol class="path">'+r.steps.map(function(s,i){
+    return '<li class="step'+(s.done?' done':'')+'"><button type="button" class="node" data-act="tick" data-id="'+r.id+'" data-i="'+i+'" aria-pressed="'+(!!s.done)+'" aria-label="Marcar parada '+(i+1)+': '+esc(s.place)+'">'+(s.done?'✓':(i+1))+'</button>'+
+      '<div class="st-body"><div class="st-p">'+esc(s.place)+(s.round?' <span class="tag">R'+s.round+'</span>':'')+'</div>'+(s.action?'<div class="st-a">'+esc(s.action)+'</div>':'')+'</div></li>';
+  }).join('')+'</ol>':'<p class="muted" style="margin-top:12px">Sem paradas. Edite a rota para adicionar.</p>';
+  return '<article class="card"><div class="r-h"><div style="min-width:0"><div class="meta"><span class="tag map">'+esc(r.map)+'</span>'+exTag(r)+'</div><h3>'+esc(r.name)+'</h3></div><span class="prog">'+done+'/'+r.steps.length+'</span></div>'+steps+
+    '<div class="acts"><button class="btn sm ghost" data-act="edit-route" data-id="'+r.id+'">Editar</button>'+(done?'<button class="btn sm ghost" data-act="reset-route" data-id="'+r.id+'">Zerar marcações</button>':'')+delBtn('routes',r.id)+'</div></article>';
+}
+function viewRotas(){
+  var list=st.routes.filter(inMap).sort(function(a,b){return (a.map||'').localeCompare(b.map||'','pt')||a.name.localeCompare(b.name,'pt')});
+  var h='<div class="sec-h"><h2>Rotas</h2><button class="btn primary" data-act="new-route">Nova</button></div>';
+  if(!list.length)return h+empty('Nenhuma rota ainda','Monte a ordem das paradas e marque cada uma durante a partida.','new-route','Criar a primeira rota');
+  return h+'<div class="stack">'+list.map(routeCard).join('')+'</div>';
+}
+
+function clockStart(){
+  return '<div class="clock"><div class="in"><label for="t-map">Mapa<input id="t-map" list="maps" value="'+esc(lastMap())+'" placeholder="Nome do mapa" autocomplete="off"></label>'+
+    '<p class="err" id="t-err" role="alert"></p><button class="btn primary next" data-act="t-start">Iniciar partida</button><div class="row2"><button type="button" class="btn ghost" data-act="map-open">Mapa</button><button type="button" class="btn ghost" data-act="perks-edit">Perks</button></div>'+
+    '<p class="hint">Ao iniciar, abre o modo partida com round, tempo, chicletes, perks e mapa. As marcas do pack e dos perks começam zeradas. Toque em “Próximo round” quando cada round terminar; o cronômetro continua contando se você fechar a página. Para ver tudo lado a lado, gire o celular para a horizontal (com a rotação automática ligada).</p></div></div>';
+}
+function clockLive(t){
+  var best=bestRun(t.map);
+  var rows=t.splits.map(function(ms,i){return {r:i+1,ms:ms}}).reverse().map(function(x){
+    var b=best&&best.splits[x.r-1],d=(b!=null)?x.ms-b:null;
+    return '<div class="split"><span>R'+x.r+'</span><span>'+fmt(x.ms)+'</span><span class="'+(d==null?'':d<=0?'fast':'slow')+'">'+(d==null?'':(d<=0?'−':'+')+fmt(Math.abs(d)))+'</span></div>';
+  }).join('');
+  var armed=ui.armed==='discard';
+  return '<div class="clock'+(t.pausedAt?' paused':'')+'"><div class="in">'+
+    '<button type="button" class="btn ghost" data-act="hud-open">Abrir modo partida</button>'+'<div class="c-top"><div><span class="cap">Round atual</span><div class="rno">'+t.round+'</div></div><div class="c-meta"><span class="tag map">'+esc(t.map)+'</span>'+(best?'<span>Melhor: R'+best.round+' em '+fmt(best.total)+'</span>':'')+'</div></div>'+
+    '<div class="big" id="t-round">0:00</div>'+
+    '<div class="c-sub"><span>Total <b id="t-total">0:00</b></span>'+(t.pausedAt?'<span class="pz">PAUSADO</span>':'')+'</div>'+
+    '<button class="btn primary next" data-act="t-next">Próximo round</button>'+
+    '<div class="row3"><button class="btn ghost" data-act="t-pause">'+(t.pausedAt?'Retomar':'Pausar')+'</button><button class="btn ghost" data-act="t-back"'+(t.splits.length?'':' disabled')+'>Voltar round</button><button class="btn ghost" data-act="t-finish">Finalizar</button></div>'+
+    (rows?'<div class="splits" aria-label="Tempo de cada round">'+rows+'</div>':'')+
+    '<div><button class="link danger" data-act="t-discard">'+(armed?'Confirmar: descartar esta run':'Descartar run')+'</button></div></div></div>';
+}
+function runCard(run){
+  var best=bestRun(run.map),isBest=best&&best.id===run.id;
+  var avg=run.splits.length?run.total/run.splits.length:0;
+  return '<details class="card run" data-id="'+run.id+'"'+(ui.open.has(run.id)?' open':'')+'><summary><span class="r-no">R'+run.round+'</span><span class="r-main"><b>'+esc(run.map)+'</b><small>'+fdate(run.date)+'</small></span><span class="r-tot">'+fmt(run.total)+(isBest?'<em class="tag best">melhor</em>':'')+'</span><span class="chev" aria-hidden="true"></span></summary>'+
+    '<div class="r-body"><p class="muted">Média por round: '+fmt(avg)+'</p><div class="splits-grid">'+run.splits.map(function(ms,i){return '<span><b>R'+(i+1)+'</b>'+fmt(ms)+'</span>'}).join('')+'</div>'+
+    '<label for="n-'+run.id+'">Anotação<textarea id="n-'+run.id+'" data-note="'+run.id+'" rows="3" placeholder="O que funcionou, onde perdeu tempo">'+esc(run.note||'')+'</textarea></label>'+
+    '<div class="acts" style="margin:0">'+delBtn('runs',run.id)+'</div></div></details>';
+}
+function viewTempo(){
+  var t=st.timer;
+  var h='<div class="sec-h"><h2>Partida</h2></div>'+viewPack()+(t?clockLive(t):clockStart());
+  var runs=st.runs.filter(inMap);
+  h+='<div class="sec-h sub"><h3>Runs salvas</h3></div>';
+  if(!runs.length)return h+'<p class="muted">Nenhuma run salva'+(ui.map?' neste mapa':'')+'. Ao finalizar uma run, os tempos de cada round ficam aqui para comparar.</p>';
+  return h+'<div class="stack">'+runs.map(runCard).join('')+'</div>';
+}
+
+function libCard(){
+  var n=st.gumLib.length;
+  return '<div class="card"><div class="pk-h"><div style="min-width:0"><h3 style="margin:0">Biblioteca</h3><p class="muted">'+(n?n+(n===1?' chiclete':' chicletes'):'Nenhum chiclete ainda')+'. O pack de 5 fica na aba Tempo, em cima do cronômetro.</p></div></div>'+
+    '<div class="acts"><button type="button" class="btn sm primary" data-act="lib-list">Abrir biblioteca</button><button type="button" class="btn sm ghost" data-act="catalog">Catálogo</button><button type="button" class="btn sm ghost" data-act="tab" data-v="tempo">Ir para o pack</button></div></div>';
+}
+function backupCard(){
+  return '<section class="card" aria-label="Cópia de segurança"><h3>Cópia de segurança</h3><p class="hint">Salva tudo (estratégias, rotas, tempos, chicletes, perks, mapas e imagens) em um arquivo. Use antes de trocar de celular ou limpar os dados do app.</p>'+
+    '<div class="btns" style="justify-content:flex-start"><button type="button" class="btn ghost" data-act="bk-export">Exportar backup</button></div>'+
+    '<label for="bk-file">Restaurar de um backup (substitui os dados atuais)<input type="file" id="bk-file" accept="application/json,.json"></label>'+
+    '<p class="pk-msg" id="bk-msg" role="status">'+esc(ui.bkMsg||'')+'</p></section>';
+}
+function viewGums(){return viewGums0()+backupCard()}
+function viewGums0(){
+  var list=st.gums.filter(inMap).sort(function(a,b){return String(b.date).localeCompare(String(a.date))});
+  var h='<div class="sec-h"><h2>Chicletes</h2></div>'+libCard();
+  h+='<div class="sec-h sub"><h3>Diário de uso</h3><button class="btn sm primary" data-act="new-gum">Registrar</button></div>';
+  if(!list.length)return h+'<p class="muted">Nenhum uso registrado'+(ui.map?' neste mapa':'')+'. Anote qual chiclete você usou, em qual round e se valeu a pena. O resumo por chiclete aparece aqui.</p>';
+  var g={};
+  list.forEach(function(x){
+    var k=x.name.trim().toLowerCase();
+    g[k]=g[k]||{name:x.name.trim(),n:0,a:0,z:0,r:0};
+    g[k].n++;g[k][x.result==='ajudou'?'a':x.result==='nao'?'r':'z']++;
+  });
+  var rows=Object.keys(g).map(function(k){return g[k]}).sort(function(a,b){return b.n-a.n}).slice(0,12).map(function(x){
+    var w=function(v){return (v/x.n*100)+'%'};
+    return '<div class="g-row"><div class="g-n"><b>'+esc(x.name)+'</b><small>'+x.n+(x.n===1?' uso':' usos')+' · '+x.a+' ajudou</small></div>'+
+      '<div class="bar" role="img" aria-label="'+x.a+' ajudou, '+x.z+' neutro, '+x.r+' não ajudou"><i style="width:'+w(x.a)+';background:var(--good)"></i><i style="width:'+w(x.z)+';background:var(--muted)"></i><i style="width:'+w(x.r)+';background:var(--bad)"></i></div></div>';
+  }).join('');
+  h+='<div class="card"><div class="sec-h sub" style="margin-top:0"><h3>Resumo por chiclete</h3></div>'+rows+'</div>';
+  h+='<div class="sec-h sub"><h3>Histórico</h3></div><div class="stack">'+list.map(function(x){
+    return '<article class="card"><div class="g-h"><b>'+esc(x.name)+'</b><span class="pill '+esc(x.result)+'">'+(RES[x.result]||'')+'</span></div>'+
+      '<div class="meta" style="margin-top:8px"><span class="tag map">'+esc(x.map)+'</span>'+(x.round?'<span class="tag">Round '+x.round+'</span>':'')+'<span class="tag">'+fdate(x.date)+'</span>'+exTag(x)+'</div>'+
+      (x.notes?'<p class="plan" style="margin-top:10px">'+esc(x.notes)+'</p>':'')+
+      '<div class="acts"><button class="btn sm ghost" data-act="edit-gum" data-id="'+x.id+'">Editar</button>'+delBtn('gums',x.id)+'</div></article>';
+  }).join('')+'</div>';
+  return h;
+}
+
+/* ---------- pack de 5 chicletes ---------- */
+function hue(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%360;return h}
+function initials(s){
+  var w=String(s).trim().split(/\s+/).filter(Boolean);
+  return ((w[0]||'?').charAt(0)+(w.length>1?w[1].charAt(0):'')).toUpperCase();
+}
+function tile(g){
+  var u=imgs[g.id];
+  return u?'<img class="gt-img" src="'+esc(u)+'" alt="'+esc(g.name)+'">'
+    :'<span class="gt-ph" style="background:hsl('+(g.cat?CAT_HUE[g.cat]:hue(g.name))+' 36% 30%)">'+esc(initials(g.name))+'</span>';
+}
+function libGum(id){return id?st.gumLib.find(function(x){return x.id===id}):null}
+function packComplete(){return st.pack.slots.every(function(s){return s.gid&&s.mark})}
+var packTm=0;
+function checkPack(){
+  if(packComplete()){
+    if(!packTm)packTm=setTimeout(function(){
+      packTm=0;
+      if(!packComplete())return;
+      st.pack.slots.forEach(function(s){s.mark=''});
+      st.pack.cycles++;
+      ui.packMsg='Pack completo. As marcas foram reiniciadas.';
+      touch();render();
+      setTimeout(function(){ui.packMsg='';if(ui.tab==='tempo'||ui.hud)render()},4000);
+    },900);
+  }else if(packTm){clearTimeout(packTm);packTm=0}
+}
+function viewPack(compact){
+  var p=st.pack,nx=p.slots.filter(function(s){return s.mark}).length,full=packComplete();
+  var slots=p.slots.map(function(s,i){
+    var g=libGum(s.gid),mk=s.mark;
+    var main=g
+      ?'<button type="button" class="pt'+(mk?' m-'+mk:'')+'" data-act="mark" data-i="'+i+'" aria-label="'+esc(g.name)+': '+(mk==='x'?'marcado com X':mk==='ok'?'marcado com confere':'sem marca')+'">'+tile(g)+(mk?'<span class="mk" aria-hidden="true">'+(mk==='x'?'✕':'✓')+'</span>':'')+'</button>'
+      :'<button type="button" class="pt blank" data-act="pick" data-i="'+i+'" aria-label="Escolher chiclete para o espaço '+(i+1)+'"><span aria-hidden="true">+</span></button>';
+    return '<div class="slot">'+main+(g?'<span class="sname">'+esc(g.name)+'</span>':'')+'<button type="button" class="link" data-act="pick" data-i="'+i+'">'+(g?'trocar':'escolher')+'</button></div>';
+  }).join('');
+  var msg=full?'Pack completo! Reiniciando as marcas…':(ui.packMsg||'');
+  var head=compact?'':'<div class="pk-h"><h3>Meu pack</h3><button type="button" class="btn sm ghost" data-act="lib-list">Biblioteca</button></div>';
+  var hint=(compact||st.gumLib.length)?'':'<p class="hint">Para começar, abra a Biblioteca e adicione chicletes pelo Catálogo ou com as suas imagens. Depois escolha os 5 do pack nos espaços abaixo.</p>';
+  var foot=compact?'':'<div class="pk-foot"><span>Packs completos: <b>'+p.cycles+'</b> · '+nx+' de 5 marcados</span><span><button type="button" class="link" data-act="pack-reset">Reiniciar marcas</button> · <button type="button" class="link" data-act="pack-zero">Zerar contador</button></span></div>';
+  return '<section class="pack" aria-label="Meu pack de 5 chicletes">'+head+
+    '<div class="modes" role="group" aria-label="Marcar com"><span class="cap" style="margin:0">Marcar com</span>'+
+    '<button type="button" class="chip" data-act="mode" data-v="x" aria-pressed="'+(p.mode==='x')+'">✕ X</button>'+
+    '<button type="button" class="chip" data-act="mode" data-v="ok" aria-pressed="'+(p.mode==='ok')+'">✓ Confere</button></div>'+hint+
+    '<div class="slots">'+slots+'</div><p class="pk-msg" role="status">'+esc(msg)+'</p>'+foot+'</section>';
+}
+function inLib(en){return st.gumLib.some(function(g){return g.cid===en})}
+function addCat(i){
+  var c=GUMS[i];
+  if(!c||inLib(c[1]))return false;
+  st.gumLib.push({id:uid(),name:c[2],en:c[1],cat:c[0],fx:c[3],cid:c[1]});
+  return true;
+}
+function normKey(t){return String(t).toLowerCase().replace(/[^a-z0-9à-ÿ]/g,'')}
+function matchCat(name){
+  var k=normKey(name);
+  if(!k)return -1;
+  for(var i=0;i<GUMS.length;i++){if(k===normKey(GUMS[i][1])||k===normKey(GUMS[i][2]))return i}
+  return -1;
+}
+function formCatalog(cat){
+  if(cat)ui.cat=cat;
+  var cur=ui.cat||'classic';
+  var chipsH=CATS.map(function(c){return '<button type="button" class="chip" data-act="cat-set" data-v="'+c[0]+'" aria-pressed="'+(c[0]===cur)+'">'+c[1]+'</button>'}).join('');
+  var rows=[];
+  GUMS.forEach(function(c,i){
+    if(c[0]!==cur)return;
+    var added=inLib(c[1]);
+    rows.push('<div class="cat-row"><span class="gt-ph cat-t" style="background:hsl('+CAT_HUE[c[0]]+' 36% 30%)" aria-hidden="true">'+esc(initials(c[2]))+'</span>'+
+      '<div class="cat-i"><b>'+esc(c[2])+'</b><small>'+esc(c[1])+'</small>'+(c[3]?'<span>'+esc(c[3])+'</span>':'')+'</div>'+
+      '<button type="button" class="btn sm '+(added?'ghost':'primary')+'" data-act="cat-add" data-i="'+i+'"'+(added?' disabled':'')+'>'+(added?'Na biblioteca':'Adicionar')+'</button></div>');
+  });
+  var label=CATS.filter(function(c){return c[0]===cur})[0][1];
+  openSheet('<h2>Catálogo de chicletes</h2>'+
+    '<p class="hint">Chicletes do Black Ops 3 com nome em português, categoria e efeito resumido (tradução livre, não oficial). Adicione à biblioteca e, se quiser, coloque a sua imagem em cada um.</p>'+
+    '<div class="chips" role="group" aria-label="Categoria">'+chipsH+'</div>'+
+    '<div><button type="button" class="btn ghost" data-act="cat-all">Adicionar todos: '+esc(label)+'</button></div>'+
+    '<div class="cat-list">'+rows.join('')+'</div>'+
+    '<div class="btns"><button type="button" class="btn ghost" data-act="close">Fechar</button></div>',function(){});
+}
+/* ---------- modo partida, perks e mapa ---------- */
+function mapKey(n){
+  var h=0;n=String(n).toLowerCase().trim();
+  for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;
+  return 'mp_'+h.toString(36);
+}
+function toMapImg(file){
+  return new Promise(function(res,rej){
+    var fr=new FileReader();
+    fr.onerror=function(){rej()};
+    fr.onload=function(){
+      var im=new Image();
+      im.onerror=function(){rej()};
+      im.onload=function(){
+        var q=0.72,max=1000,u='';
+        for(var k=0;k<5;k++){
+          var sc=Math.min(1,max/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*sc)),h=Math.max(1,Math.round(im.height*sc));
+          var c=document.createElement('canvas');c.width=w;c.height=h;
+          c.getContext('2d').drawImage(im,0,0,w,h);
+          u=c.toDataURL('image/jpeg',q);
+          if(u.length<225000)break;
+          q=Math.max(0.4,q-0.08);max=Math.round(max*0.8);
+        }
+        if(u.length>=240000)rej();else res(u);
+      };
+      im.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function pinsHtml(name){
+  var m=st.maps[name];if(!m)return '';
+  return m.pins.map(function(p,i){return '<span class="pin" style="left:'+p.x+'%;top:'+p.y+'%">'+(i+1)+'</span>'}).join('');
+}
+function pinListHtml(name){
+  var m=st.maps[name];
+  if(!m||!m.pins.length)return '<li class="muted">Nenhum marcador ainda.</li>';
+  return m.pins.map(function(p,i){return '<li><b>'+(i+1)+'</b><span>'+esc(p.t)+'</span><button type="button" class="link" data-act="pin-del" data-i="'+i+'">remover</button></li>'}).join('');
+}
+function mapThumb(name){
+  var u=imgs[mapKey(name)];
+  if(!u)return '<button type="button" class="btn ghost" data-act="map-open" data-n="'+esc(name)+'">Adicionar mapa de '+esc(name)+'</button>';
+  return '<button type="button" class="mapthumb" data-act="map-open" data-n="'+esc(name)+'" aria-label="Abrir mapa de '+esc(name)+'"><img src="'+esc(u)+'" alt="" draggable="false"><span class="pinlayer">'+pinsHtml(name).replace(/class="pin"/g,'class="pin sm"')+'</span><span class="mt-l">Mapa · toque para ampliar</span></button>';
+}
+function pkKey(n){
+  var h=0;n=String(n).toLowerCase().trim();
+  for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;
+  return 'pk_'+h.toString(36);
+}
+function perkChips(){
+  var P=st.perks;
+  return P.names.map(function(n){
+    var on=!!P.on[n];
+    var u=imgs[pkKey(n)];
+    return '<button type="button" class="perk'+(on?' on':'')+'" data-act="perk" data-n="'+esc(n)+'" aria-pressed="'+on+'">'+(u?'<img class="pk-i" src="'+esc(u)+'" alt="" draggable="false">':'<span class="pk-i pk-ph" aria-hidden="true">'+esc(n.charAt(0).toUpperCase())+'</span>')+'<span class="pk-n">'+esc(n)+'</span></button>';
+  }).join('');
+}
+function mapNames(){
+  var set={},out=[],t=st.timer;
+  var add=function(n){n=String(n||'').trim();if(n&&!set[n]){set[n]=1;out.push(n)}};
+  if(t)add(t.map);
+  Object.keys(st.maps).forEach(add);
+  allMaps().forEach(add);
+  return out;
+}
+function mapTiles(){
+  var cur=st.timer?st.timer.map:'';
+  return mapNames().map(function(n){
+    var u=imgs[mapKey(n)];
+    return '<button type="button" class="lib-t map-t" data-act="map-open" data-n="'+esc(n)+'">'+
+      (u?'<img class="gt-img" src="'+esc(u)+'" alt="">':'<span class="gt-ph" style="background:var(--surface-2);color:var(--muted);font-size:12px;text-align:center">Sem imagem</span>')+
+      '<span class="ln">'+esc(n)+(n===cur?' · atual':'')+'</span></button>';
+  }).join('');
+}
+function popHtml(k){
+  if(k==='gums')return '<h2>Chicletes</h2>'+viewPack(true)+'<p class="hint">Toque em um chiclete para marcar. Use “trocar” para escolher outro da biblioteca.</p>'+
+    '<div class="btns" style="justify-content:space-between"><button type="button" class="btn ghost" data-act="lib-list">Biblioteca</button><button type="button" class="btn primary" data-act="close">Fechar</button></div>';
+  if(k==='perks')return '<h2>Perks</h2><div class="perk-grid">'+perkChips()+'</div><p class="hint">Toque no perk que você já pegou.</p>'+
+    '<div class="btns" style="justify-content:space-between"><button type="button" class="btn ghost" data-act="perks-edit">Editar lista</button><button type="button" class="btn primary" data-act="close">Fechar</button></div>';
+  if(k==='maps'){
+    var tl=mapTiles();
+    return '<h2>Mapas</h2>'+(tl?'<div class="lib-grid">'+tl+'</div>':'<p class="muted">Nenhum mapa ainda. Digite o nome abaixo e adicione a imagem.</p>')+
+      '<label for="new-map">Novo mapa<input id="new-map" maxlength="60" placeholder="Ex.: Kino der Toten" autocomplete="off"></label>'+
+      '<div class="btns" style="justify-content:space-between"><button type="button" class="btn ghost" data-act="map-new">Adicionar mapa</button><button type="button" class="btn primary" data-act="close">Fechar</button></div>';
+  }
+  return null;
+}
+function openPop(k){openSheet(popHtml(k),function(){},k)}
+function refreshPop(){
+  if(sheet.hidden||!ui.pop)return;
+  var h=popHtml(ui.pop);
+  if(h==null)return;
+  var sc=panel.scrollTop;panel.innerHTML=h;panel.scrollTop=sc;
+}
+function miniPack(){
+  return '<span class="mini-row">'+st.pack.slots.map(function(sl){
+    var g=libGum(sl.gid);
+    if(!g)return '<span class="mini blank" aria-hidden="true">+</span>';
+    return '<span class="mini'+(sl.mark?' m-'+sl.mark:'')+'">'+tile(g)+(sl.mark?'<i aria-hidden="true">'+(sl.mark==='x'?'✕':'✓')+'</i>':'')+'</span>';
+  }).join('')+'</span>';
+}
+function viewHud(){
+  var t=st.timer,best=bestRun(t.map),armed=ui.armed==='discard';
+  var pn=st.perks.names.length,pon=st.perks.names.filter(function(n){return st.perks.on[n]}).length;
+  var mu=imgs[mapKey(t.map)];
+  return '<div class="hud-col a"><div class="hud-top"><div><span class="cap">Round</span><div class="rno">'+t.round+'</div></div><div class="hud-time"><span class="cap">Neste round</span><div class="big" id="t-round">0:00</div></div></div>'+
+    '<div class="c-sub"><span>Total <b id="t-total">0:00</b></span><span class="tag map">'+esc(t.map)+'</span>'+(best?'<span>Melhor: R'+best.round+' · '+fmt(best.total)+'</span>':'')+(t.pausedAt?'<span class="pz">PAUSADO</span>':'')+'</div>'+
+    '<button class="btn primary next" data-act="t-next">Próximo round</button></div>'+
+    '<div class="hud-col b">'+
+    '<button type="button" class="launch" data-act="pop-gums" aria-label="Abrir chicletes"><span class="lh"><b>Chicletes</b><span class="cap" style="margin:0">'+(st.pack.mode==='ok'?'✓ Confere':'✕ X')+'</span></span>'+miniPack()+'</button>'+
+    '<button type="button" class="launch" data-act="pop-perks" aria-label="Abrir perks"><span class="lh"><b>Perks</b><span class="cap" style="margin:0">'+pon+' de '+pn+'</span></span></button>'+
+    '<button type="button" class="launch" data-act="pop-maps" aria-label="Abrir mapas"><span class="lh"><b>Mapa</b><span class="cap" style="margin:0">'+esc(t.map)+'</span></span>'+(mu?'<img class="launch-map" src="'+esc(mu)+'" alt="" draggable="false">':'')+'</button></div>'+
+    '<div class="hud-col c">'+
+    '<div class="row3"><button class="btn ghost" data-act="t-pause">'+(t.pausedAt?'Retomar':'Pausar')+'</button><button class="btn ghost" data-act="t-back"'+(t.splits.length?'':' disabled')+'>Voltar round</button><button class="btn ghost" data-act="t-finish">Finalizar</button></div>'+
+    '<div class="hud-foot"><button type="button" class="link" data-act="hud-close">Sair do modo partida (o cronômetro continua)</button><button type="button" class="link danger" data-act="t-discard">'+(armed?'Confirmar: descartar partida':'Descartar partida')+'</button></div></div>';
+}
+function pkRow(n){
+  var u=n?imgs[pkKey(n)]:'';
+  return '<div class="pk-row" data-old="'+esc(n||'')+'"><div class="pk-pic">'+(u?'<img class="gt-img" src="'+esc(u)+'" alt="">':'<span class="gt-ph pk-none">Sem imagem</span>')+'</div>'+
+    '<div class="pk-fields"><input type="text" class="pk-name" maxlength="30" placeholder="Nome do perk" aria-label="Nome do perk" value="'+esc(n||'')+'">'+
+    '<input type="file" class="pk-file" accept="image/*" aria-label="Imagem do perk">'+
+    '<div class="pk-acts"><button type="button" class="link" data-act="pk-img-del">Tirar imagem</button><button type="button" class="link danger" data-act="pk-row-del">Remover perk</button></div></div></div>';
+}
+function formPerks(){
+  openSheet('<h2>Perks da partida</h2><p class="hint">Cada perk pode ter uma imagem sua. Toque em “Escolher arquivo” em cada linha. Perks sem imagem mostram a inicial do nome.</p>'+
+    '<div id="pk-rows" class="pk-rows">'+st.perks.names.map(pkRow).join('')+'</div>'+
+    '<button type="button" class="btn ghost" data-act="pk-row-add">Adicionar perk</button>'+btns(),
+    function(){
+      var rows=Array.prototype.slice.call(panel.querySelectorAll('.pk-row')),seen={},out=[],keep={};
+      rows.forEach(function(r){
+        var inp=r.querySelector('.pk-name'),n=((inp&&inp.value)||'').trim().slice(0,30);
+        if(!n||seen[n])return;
+        seen[n]=1;out.push({n:n,old:r.dataset.old||'',img:r._img,no:r._noimg});
+      });
+      if(!out.length)return ferr('Informe pelo menos um perk.');
+      out=out.slice(0,30);
+      var on={},oldImgs={};
+      st.perks.names.forEach(function(o){oldImgs[o]=imgs[pkKey(o)]});
+      out.forEach(function(o){
+        if(o.old&&st.perks.on[o.old])on[o.n]=true;
+        keep[pkKey(o.n)]=1;
+      });
+      st.perks.names.forEach(function(o){if(!keep[pkKey(o)])delImg(pkKey(o))});
+      out.forEach(function(o){
+        if(o.img)putImg(pkKey(o.n),o.img);
+        else if(o.no)delImg(pkKey(o.n));
+        else if(o.old&&o.old!==o.n&&oldImgs[o.old])putImg(pkKey(o.n),oldImgs[o.old]);
+      });
+      st.perks={names:out.map(function(o){return o.n}),on:on};
+      touch();closeSheet();render();
+    });
+}
+function formMapSheet(name){
+  ui.mapName=name;ui.mapZoom=1;ui.pinMode=false;
+  var u=imgs[mapKey(name)];
+  openSheet('<h2>Mapa</h2><p class="muted" style="margin-top:-8px">'+esc(name)+'</p>'+
+    (u?'<div class="mapbar"><button type="button" class="btn sm ghost" data-act="mz-out" aria-label="Diminuir zoom">−</button><span id="mz" class="mz">100%</span><button type="button" class="btn sm ghost" data-act="mz-in" aria-label="Aumentar zoom">+</button><button type="button" class="btn sm ghost" id="pin-btn" data-act="pin-mode" aria-pressed="false">Marcar local</button></div>'+
+      '<label for="pin-t" id="pin-lab" hidden>Nome do marcador (depois toque no mapa)<input id="pin-t" maxlength="40" placeholder="Ex.: Pack-a-Punch" autocomplete="off"></label>'+
+      '<div class="mapbox" id="mapbox"><div class="mapwrap" id="mapwrap"><img class="mapimg" id="mapimg" src="'+esc(u)+'" alt="Mapa de '+esc(name)+'" draggable="false"><div class="pinlayer" id="pinlayer">'+pinsHtml(name)+'</div></div></div><p class="hint">Dois dedos: zoom e mover o mapa. Um dedo também arrasta.</p>'+
+      '<ol class="pinlist" id="pinlist">'+pinListHtml(name)+'</ol>'
+    :'<p class="hint">Ainda não há imagem de mapa para esta partida. Adicione um print do mapa para rever a localização das coisas e marcar pontos importantes.</p>')+
+    '<label for="m-file">'+(u?'Trocar imagem do mapa':'Adicionar imagem do mapa')+'<input id="m-file" type="file" accept="image/*"></label>'+
+    '<div class="pastebox" id="pastebox" data-tgt="map" contenteditable="true" role="textbox" aria-label="Colar imagem do mapa">Ou toque e segure aqui e escolha Colar para usar uma imagem copiada</div>'+
+    '<p class="err" id="ferr" role="alert"></p>'+
+    '<div class="btns">'+(u?'<button type="button" class="btn ghost" data-act="map-rm">Remover imagem</button>':'')+'<button type="button" class="btn ghost" data-act="pop-maps">Todos os mapas</button><button type="button" class="btn ghost" data-act="close">Fechar</button></div>',function(){},'view');
+}
+function formMap(name){
+  formMapSheet(name);
+  if(imgs[mapKey(name)])initMapView();
+}
+var mv={s:1,tx:0,ty:0,bw:0,bh:0,w:0,h:0};
+function mvApply(){
+  var wrap=$('#mapwrap');if(!wrap)return;
+  var cw=mv.w*mv.s,ch=mv.h*mv.s;
+  mv.tx=cw<=mv.bw?(mv.bw-cw)/2:Math.min(0,Math.max(mv.bw-cw,mv.tx));
+  mv.ty=ch<=mv.bh?(mv.bh-ch)/2:Math.min(0,Math.max(mv.bh-ch,mv.ty));
+  wrap.style.transform='translate('+mv.tx+'px,'+mv.ty+'px) scale('+mv.s+')';
+  wrap.style.setProperty('--inv',String(1/mv.s));
+  var z=$('#mz');if(z)z.textContent=Math.round(mv.s*100)+'%';
+}
+function mvFit(keep){
+  var box=$('#mapbox'),img=$('#mapimg'),wrap=$('#mapwrap');
+  if(!box||!img||!wrap||!img.naturalWidth)return;
+  var r=box.getBoundingClientRect();
+  mv.bw=r.width;mv.bh=r.height;
+  var f=Math.min(mv.bw/img.naturalWidth,mv.bh/img.naturalHeight);
+  mv.w=img.naturalWidth*f;mv.h=img.naturalHeight*f;
+  wrap.style.width=mv.w+'px';wrap.style.height=mv.h+'px';
+  if(!keep){mv.s=1;mv.tx=0;mv.ty=0}
+  mvApply();
+}
+function mvZoomAt(cx,cy,ns){
+  ns=Math.max(1,Math.min(8,ns));
+  var px=(cx-mv.tx)/mv.s,py=(cy-mv.ty)/mv.s;
+  mv.s=ns;mv.tx=cx-px*ns;mv.ty=cy-py*ns;
+  mvApply();
+}
+function mvZoomBtn(f){mvZoomAt(mv.bw/2,mv.bh/2,mv.s*f)}
+function addPinAt(px,py){
+  var mm=st.maps[ui.mapName]=st.maps[ui.mapName]||{pins:[]};
+  if(mm.pins.length>=60||px<0||px>100||py<0||py>100)return;
+  var pt=$('#pin-t'),lab=((pt&&pt.value)||'').trim()||('Ponto '+(mm.pins.length+1));
+  mm.pins.push({id:uid(),x:Math.round(px*10)/10,y:Math.round(py*10)/10,t:lab.slice(0,40)});
+  if(pt)pt.value='';
+  touch();redrawPins();render();
+}
+function initMapView(){
+  var box=$('#mapbox'),img=$('#mapimg');
+  if(!box||!img)return;
+  var ptrs={},moved=0,multi=false;
+  var pos=function(e){var r=box.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}};
+  box.addEventListener('pointerdown',function(e){
+    try{box.setPointerCapture(e.pointerId)}catch(x){}
+    ptrs[e.pointerId]=pos(e);
+    if(Object.keys(ptrs).length===1){moved=0;multi=false}else multi=true;
+  });
+  box.addEventListener('pointermove',function(e){
+    var old=ptrs[e.pointerId];
+    if(!old)return;
+    var np=pos(e),keys=Object.keys(ptrs);
+    if(keys.length>=2){
+      var ok=keys.filter(function(k){return +k!==e.pointerId})[0],o=ptrs[ok];
+      var oldD=Math.hypot(old.x-o.x,old.y-o.y),newD=Math.hypot(np.x-o.x,np.y-o.y);
+      var oldM={x:(old.x+o.x)/2,y:(old.y+o.y)/2},newM={x:(np.x+o.x)/2,y:(np.y+o.y)/2};
+      ptrs[e.pointerId]=np;
+      if(oldD>8&&newD>8){
+        var ns=Math.max(1,Math.min(8,mv.s*newD/oldD)),cx=(oldM.x-mv.tx)/mv.s,cy=(oldM.y-mv.ty)/mv.s;
+        mv.s=ns;mv.tx=newM.x-cx*ns;mv.ty=newM.y-cy*ns;
+        mvApply();
+      }
+    }else{
+      var dx=np.x-old.x,dy=np.y-old.y;
+      ptrs[e.pointerId]=np;
+      moved+=Math.abs(dx)+Math.abs(dy);
+      mv.tx+=dx;mv.ty+=dy;mvApply();
+    }
+  });
+  var up=function(e){
+    if(!ptrs[e.pointerId])return;
+    var single=Object.keys(ptrs).length===1;
+    delete ptrs[e.pointerId];
+    if(single&&!multi&&moved<8&&ui.pinMode&&e.type==='pointerup'){
+      var p=pos(e);
+      addPinAt(((p.x-mv.tx)/mv.s)/mv.w*100,((p.y-mv.ty)/mv.s)/mv.h*100);
+    }
+  };
+  box.addEventListener('pointerup',up);
+  box.addEventListener('pointercancel',up);
+  box.addEventListener('wheel',function(e){
+    e.preventDefault();
+    var p=pos(e);
+    mvZoomAt(p.x,p.y,mv.s*(e.deltaY<0?1.2:1/1.2));
+  },{passive:false});
+  var go=function(){mvFit(false)};
+  if(img.complete&&img.naturalWidth)go();else img.addEventListener('load',go);
+}
+function redrawPins(){
+  var a=$('#pinlayer'),b=$('#pinlist');
+  if(a)a.innerHTML=pinsHtml(ui.mapName);
+  if(b)b.innerHTML=pinListHtml(ui.mapName);
+}
+function useMapFile(f){
+  var name=ui.mapName;
+  if(!name||!f)return;
+  ferr('Processando imagem…');
+  toMapImg(f).then(function(u){
+    putImg(mapKey(name),u);
+    if(!st.maps[name])st.maps[name]={pins:[]};
+    touch();render();formMap(name);
+  }).catch(function(){ferr('Não foi possível usar essa imagem. Tente outra, de preferência menor.')});
+}
+function useGumFile(f){
+  toThumb(f).then(function(u){
+    pendingImg=u;
+    var pv=$('#lib-prev');if(pv)pv.innerHTML='<img class="gt-img" src="'+esc(u)+'" alt="Pré-visualização da imagem">';
+  }).catch(function(){ferr('Não foi possível ler esta imagem. Tente outro arquivo.')});
+}
+
+function formPick(i){
+  ui.pickSlot=i;
+  var cur=st.pack.slots[i].gid;
+  var grid=st.gumLib.slice().sort(function(a,b){return a.name.localeCompare(b.name,'pt')}).map(function(g){
+    return '<button type="button" class="lib-t'+(g.id===cur?' sel':'')+'" data-act="assign" data-i="'+i+'" data-id="'+g.id+'">'+tile(g)+'<span class="ln">'+esc(g.name)+'</span></button>';
+  }).join('');
+  openSheet('<h2>Chiclete do espaço '+(i+1)+'</h2>'+
+    (grid?'<div class="lib-grid">'+grid+'</div>':'<p class="muted">Sua biblioteca está vazia. Adicione o primeiro chiclete com a imagem.</p>')+
+    '<div class="btns" style="justify-content:space-between"><button type="button" class="btn primary" data-act="lib-add">Adicionar chiclete</button>'+(cur?'<button type="button" class="btn ghost" data-act="clear-slot" data-i="'+i+'">Esvaziar espaço</button>':'')+'</div>'+
+    '<div class="btns"><button type="button" class="btn ghost" data-act="close">Fechar</button></div>',function(){},'view');
+}
+function formLibList(){
+  ui.pickSlot=null;
+  var grid=st.gumLib.slice().sort(function(a,b){return a.name.localeCompare(b.name,'pt')}).map(function(g){
+    return '<button type="button" class="lib-t" data-act="lib-edit" data-id="'+g.id+'">'+tile(g)+'<span class="ln">'+esc(g.name)+'</span></button>';
+  }).join('');
+  var msg=ui.libMsg;ui.libMsg='';
+  openSheet('<h2>Biblioteca de chicletes</h2>'+
+    '<p class="hint">Use o Catálogo para adicionar chicletes com nome em português, categoria e efeito. Ao subir imagens, se o nome do arquivo for o nome do chiclete (em português ou inglês), a imagem vai para o chiclete certo. Toque em um chiclete para renomear, trocar a imagem ou excluir.</p>'+
+    (msg?'<p class="pk-msg" role="status">'+esc(msg)+'</p>':'')+
+    (grid?'<div class="lib-grid">'+grid+'</div>':'')+
+    '<div class="btns" style="justify-content:flex-start"><button type="button" class="btn primary" data-act="catalog">Catálogo BO3</button><button type="button" class="btn ghost" data-act="lib-add">Novo, com nome</button></div>'+'<label for="lib-multi">Adicionar várias imagens<input type="file" id="lib-multi" accept="image/*" multiple></label>'+
+    '<div class="btns"><button type="button" class="btn ghost" data-act="close">Fechar</button></div>',function(){});
+}
+var pendingImg=null;
+function formLib(id,fromSlot){
+  var g=libGum(id);
+  pendingImg=null;
+  var back=fromSlot!=null?String(fromSlot):'';
+  openSheet('<h2>'+(g?'Editar':'Novo')+' chiclete</h2>'+
+    '<div class="lib-form"><div class="lib-prev" id="lib-prev">'+(g?tile(g):'<span class="gt-ph" style="background:var(--surface-2);color:var(--muted)">?</span>')+'</div>'+
+    '<div style="display:grid;gap:12px;min-width:0"><label for="l-name">Nome<input id="l-name" name="name" list="gumnames" required maxlength="60" value="'+esc(g?g.name:'')+'" autocomplete="off"></label>'+
+    '<label for="l-img">Imagem<input id="l-img" type="file" accept="image/*"></label></div></div>'+'<div class="pastebox" id="pastebox" data-tgt="gum" contenteditable="true" role="textbox" aria-label="Colar imagem">Ou toque e segure aqui e escolha Colar para usar uma imagem copiada</div>'+
+    (g&&g.fx?'<p class="hint">'+esc(g.fx)+(g.en?' · '+esc(g.en):'')+'</p>':'')+
+    '<p class="err" id="ferr" role="alert"></p>'+
+    '<div class="btns" style="justify-content:space-between">'+(g?'<button type="button" class="btn ghost" data-act="lib-del" data-id="'+g.id+'">Excluir</button>':'<span></span>')+
+    '<span style="display:flex;gap:10px"><button type="button" class="btn ghost" data-act="lib-back" data-i="'+back+'">Voltar</button><button type="submit" class="btn primary">Salvar</button></span></div>',
+    function(fd){
+      var name=(fd.get('name')||'').trim();
+      if(!name)return ferr('Informe o nome do chiclete.');
+      var gid;
+      if(g){g.name=name;gid=g.id}else{gid=uid();st.gumLib.push({id:gid,name:name})}
+      if(pendingImg)putImg(gid,pendingImg);
+      pendingImg=null;
+      if(fromSlot!=null&&!g)st.pack.slots[fromSlot]={gid:gid,mark:''};
+      touch();render();
+      if(fromSlot!=null&&!g)closeSheet();else formLibList();
+    });
+}
+async function addFiles(files){
+  var n=0;
+  for(var i=0;i<files.length;i++){
+    try{
+      var u=await toThumb(files[i]);
+      var name=(files[i].name||'Chiclete').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim().slice(0,60)||'Chiclete';
+      var mi=matchCat(name),ex=mi>=0?st.gumLib.find(function(g){return g.cid===GUMS[mi][1]}):null;
+      if(ex){putImg(ex.id,u)}
+      else{
+        var id=uid();
+        if(mi>=0){var c=GUMS[mi];st.gumLib.push({id:id,name:c[2],en:c[1],cat:c[0],fx:c[3],cid:c[1]})}
+        else st.gumLib.push({id:id,name:name});
+        putImg(id,u);
+      }
+      n++;
+    }catch(e){}
+  }
+  if(n){touch();render()}
+  return n;
+}
+
+function render(){
+  if(ui.map&&allMaps().indexOf(ui.map)<0)ui.map='';
+  document.querySelectorAll('.tab').forEach(function(b){b.setAttribute('aria-current',b.dataset.v===ui.tab?'page':'false')});
+  var view={est:viewEst,rotas:viewRotas,tempo:viewTempo,gums:viewGums}[ui.tab];
+  if(!st.timer)ui.hud=false;
+  var hud=!!ui.hud;
+  document.body.classList.toggle('hud',hud);
+  if(hud){app.innerHTML=viewHud();fillLists();updateTimer();keepAwake();checkPack();refreshPop();return}
+  app.innerHTML=chips()+(hasExamples()?'<p class="note">Há itens de exemplo neste caderno. <button class="link" data-act="rm-examples">Remover exemplos</button></p>':'')+view();
+  fillLists();updateTimer();keepAwake();
+  if(ui.tab==='tempo')checkPack();
+  refreshPop();
+}
+
+/* ---------- formulário ---------- */
+var onSubmit=null,draft=null;
+function openSheet(html,fn,pop){
+  ui.pop=pop||null;
+  sheet.classList.toggle('sq',!!pop);
+  panel.innerHTML=html;onSubmit=fn;sheet.hidden=false;
+  document.documentElement.style.overflow='hidden';
+  if(pop)return;
+  var f=panel.querySelector('input:not([type=radio]):not([type=search]):not([type=file]),textarea');
+  if(f)f.focus({preventScroll:true});
+}
+function closeSheet(){ui.pop=null;sheet.classList.remove('sq');sheet.hidden=true;panel.innerHTML='';onSubmit=null;draft=null;document.documentElement.style.overflow=''}
+function ferr(msg){var e=$('#ferr');if(e)e.textContent=msg;return false}
+var btns=function(){return '<p class="err" id="ferr" role="alert"></p><div class="btns"><button type="button" class="btn ghost" data-act="close">Cancelar</button><button type="submit" class="btn primary">Salvar</button></div>'};
+function after(map){if(map&&ui.map&&ui.map!==map)ui.map=map;touch();closeSheet();render()}
+
+function formEst(id){
+  var s=id?st.strategies.find(function(x){return x.id===id}):null;
+  var v=s||{map:ui.map||lastMap(),from:1,to:10,title:'',plan:'',tags:[]};
+  openSheet('<h2>'+(s?'Editar':'Nova')+' estratégia</h2>'+
+    '<label for="e-map">Mapa<input id="e-map" name="map" list="maps" required maxlength="60" value="'+esc(v.map)+'" autocomplete="off"></label>'+
+    '<div class="row2"><label for="e-from">Do round<input id="e-from" name="from" type="number" inputmode="numeric" min="1" max="999" required value="'+v.from+'"></label>'+
+    '<label for="e-to">Até o round<input id="e-to" name="to" type="number" inputmode="numeric" min="1" max="999" required value="'+v.to+'"></label></div>'+
+    '<label for="e-title">Título<input id="e-title" name="title" required maxlength="80" value="'+esc(v.title)+'" placeholder="Ex.: Kiting no corredor"></label>'+
+    '<label for="e-plan">Plano<textarea id="e-plan" name="plan" rows="7" placeholder="Onde ficar, o que comprar, quando trocar de tática">'+esc(v.plan)+'</textarea></label>'+
+    '<label for="e-tags">Etiquetas (separe por vírgula)<input id="e-tags" name="tags" value="'+esc(arr(v.tags).join(', '))+'" placeholder="Camping, Kiting, Caixa"></label>'+btns(),
+    function(fd){
+      var from=parseInt(fd.get('from'),10),to=parseInt(fd.get('to'),10),map=(fd.get('map')||'').trim(),title=(fd.get('title')||'').trim();
+      if(!map||!title)return ferr('Preencha o mapa e o título.');
+      if(!(from>=1&&to>=1))return ferr('Informe os rounds.');
+      if(from>to)return ferr('O round inicial não pode ser maior que o final.');
+      var o={map:map,from:from,to:to,title:title,plan:(fd.get('plan')||'').trim(),tags:(fd.get('tags')||'').split(',').map(function(t){return t.trim()}).filter(Boolean).slice(0,6)};
+      if(s)Object.assign(s,o,{example:false});else st.strategies.push(Object.assign({id:uid()},o));
+      after(map);
+    });
+}
+
+function mkStep(){return {id:uid(),place:'',action:'',round:'',done:false}}
+function stepRow(s,i){
+  return '<div class="srow" data-i="'+i+'"><span class="sn">'+(i+1)+'</span><div class="sf">'+
+    '<input aria-label="Local da parada '+(i+1)+'" data-f="place" maxlength="60" placeholder="Local (ex.: porta da cozinha)" value="'+esc(s.place)+'">'+
+    '<input aria-label="O que fazer na parada '+(i+1)+'" data-f="action" maxlength="120" placeholder="O que fazer aqui" value="'+esc(s.action)+'">'+
+    '<input aria-label="Round da parada '+(i+1)+'" data-f="round" type="number" inputmode="numeric" min="1" max="999" placeholder="Round (opcional)" value="'+esc(s.round)+'"></div>'+
+    '<div class="sbtn"><button type="button" class="ib" data-act="step-up" data-i="'+i+'" aria-label="Subir parada">↑</button><button type="button" class="ib" data-act="step-down" data-i="'+i+'" aria-label="Descer parada">↓</button><button type="button" class="ib" data-act="step-rm" data-i="'+i+'" aria-label="Remover parada">✕</button></div></div>';
+}
+function syncDraft(){
+  if(!draft)return;
+  var n=$('#r-name'),m=$('#r-map');
+  if(n)draft.name=n.value;if(m)draft.map=m.value;
+  draft.steps=Array.from(panel.querySelectorAll('.srow')).map(function(row,i){
+    var old=draft.steps[i]||mkStep();
+    var g=function(f){return row.querySelector('[data-f="'+f+'"]').value};
+    return {id:old.id,done:!!old.done,place:g('place'),action:g('action'),round:g('round')};
+  });
+}
+function redrawSteps(focusLast){
+  $('#steps').innerHTML=draft.steps.map(stepRow).join('');
+  if(focusLast){var rows=panel.querySelectorAll('.srow');var f=rows[rows.length-1].querySelector('input');f.focus()}
+}
+function formRoute(id){
+  var r=id?st.routes.find(function(x){return x.id===id}):null;
+  draft=r?JSON.parse(JSON.stringify(r)):{id:null,map:ui.map||lastMap(),name:'',steps:[mkStep()]};
+  openSheet('<h2>'+(r?'Editar':'Nova')+' rota</h2>'+
+    '<label for="r-name">Nome da rota<input id="r-name" name="name" required maxlength="80" value="'+esc(draft.name)+'" placeholder="Ex.: Abertura até a segunda porta"></label>'+
+    '<label for="r-map">Mapa<input id="r-map" name="map" list="maps" required maxlength="60" value="'+esc(draft.map)+'" autocomplete="off"></label>'+
+    '<div class="steps-h">Paradas, na ordem</div><div id="steps">'+draft.steps.map(stepRow).join('')+'</div>'+
+    '<button type="button" class="btn ghost" data-act="step-add">+ Parada</button>'+btns(),
+    function(){
+      syncDraft();
+      var name=draft.name.trim(),map=draft.map.trim();
+      var steps=draft.steps.filter(function(s){return s.place.trim()}).map(function(s){
+        var rd=parseInt(s.round,10);
+        return {id:s.id,done:!!s.done,place:s.place.trim(),action:s.action.trim(),round:rd>=1?rd:''};
+      });
+      if(!name||!map)return ferr('Preencha o nome e o mapa.');
+      if(!steps.length)return ferr('Adicione pelo menos uma parada com o local.');
+      if(r)Object.assign(r,{name:name,map:map,steps:steps,example:false});
+      else st.routes.push({id:uid(),name:name,map:map,steps:steps});
+      after(map);
+    });
+}
+
+function formGum(id){
+  var g=id?st.gums.find(function(x){return x.id===id}):null;
+  var v=g||{name:'',map:ui.map||lastMap(),round:'',result:'ajudou',notes:''};
+  var opts=['ajudou','neutro','nao'].map(function(k){return '<label class="opt"><input type="radio" name="res" value="'+k+'"'+(v.result===k?' checked':'')+'><span>'+RES[k]+'</span></label>'}).join('');
+  openSheet('<h2>'+(g?'Editar':'Registrar')+' chiclete</h2>'+
+    '<label for="g-name">Chiclete<input id="g-name" name="name" list="gumnames" required maxlength="60" value="'+esc(v.name)+'" autocomplete="off"></label>'+
+    '<div class="row2"><label for="g-map">Mapa<input id="g-map" name="map" list="maps" required maxlength="60" value="'+esc(v.map)+'" autocomplete="off"></label>'+
+    '<label for="g-round">Round<input id="g-round" name="round" type="number" inputmode="numeric" min="1" max="999" value="'+esc(v.round)+'"></label></div>'+
+    '<div role="radiogroup" aria-label="Resultado" style="display:grid;gap:6px"><span class="steps-h">Resultado</span><div class="seg">'+opts+'</div></div>'+
+    '<label for="g-notes">Anotação<textarea id="g-notes" name="notes" rows="4" placeholder="Em que situação usou e o que aconteceu">'+esc(v.notes)+'</textarea></label>'+btns(),
+    function(fd){
+      var name=(fd.get('name')||'').trim(),map=(fd.get('map')||'').trim(),rd=parseInt(fd.get('round'),10);
+      if(!name||!map)return ferr('Preencha o chiclete e o mapa.');
+      var o={name:name,map:map,round:rd>=1?rd:'',result:fd.get('res')||'neutro',notes:(fd.get('notes')||'').trim()};
+      if(g)Object.assign(g,o,{example:false});else st.gums.push(Object.assign({id:uid(),date:new Date().toISOString()},o));
+      after(map);
+    });
+}
+
+/* ---------- eventos ---------- */
+/* toque rápido: dispara no soltar do dedo, mesmo que a tela tenha sido redesenhada entre tocar e soltar */
+var FAST={'t-next':1,'mark':1,'perk':1,'t-pause':1,'t-back':1,'mode':1},fdn=null,fastAt=0,fastNow=false;
+document.addEventListener('pointerdown',function(e){
+  fdn=null;
+  if(e.pointerType==='mouse'||!e.target.closest)return;
+  var el=e.target.closest('[data-act]');
+  if(el&&FAST[el.dataset.act])fdn={a:el.dataset.act,i:el.dataset.i||'',n:el.dataset.n||'',x:e.clientX,y:e.clientY,t:Date.now()};
+},true);
+document.addEventListener('pointerup',function(e){
+  var f=fdn;fdn=null;
+  if(!f||Math.abs(e.clientX-f.x)+Math.abs(e.clientY-f.y)>14||Date.now()-f.t>900)return;
+  var at=document.elementFromPoint(e.clientX,e.clientY),el=at&&at.closest&&at.closest('[data-act]');
+  if(!el||el.disabled||el.dataset.act!==f.a||(el.dataset.i||'')!==f.i||(el.dataset.n||'')!==f.n)return;
+  fastAt=Date.now();fastNow=true;
+  try{el.click()}finally{fastNow=false}
+},true);
+document.addEventListener('pointercancel',function(){fdn=null},true);
+document.addEventListener('click',function(e){
+  if(!fastNow&&Date.now()-fastAt<600){var fe=e.target.closest&&e.target.closest('[data-act]');if(fe&&FAST[fe.dataset.act]){e.stopImmediatePropagation();e.preventDefault();return}}
+},true);
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-act]');if(!el)return;
+  var a=el.dataset.act,d=el.dataset,t=st.timer;
+  switch(a){
+    case 'tab':ui.tab=d.v;ui.armed='';render();window.scrollTo(0,0);break;
+    case 'map':ui.map=d.v;render();break;
+    case 'close':closeSheet();break;
+    case 'new-est':formEst();break;
+    case 'edit-est':formEst(d.id);break;
+    case 'new-route':formRoute();break;
+    case 'edit-route':formRoute(d.id);break;
+    case 'new-gum':formGum();break;
+    case 'edit-gum':formGum(d.id);break;
+    case 'rm-examples':
+      ['strategies','routes','gums'].forEach(function(k){st[k]=st[k].filter(function(x){return !x.example})});
+      touch();render();break;
+    case 'del':
+      var key=d.k+':'+d.id;
+      if(ui.armed===key){
+        if(['strategies','routes','runs','gums'].indexOf(d.k)>=0)st[d.k]=st[d.k].filter(function(x){return x.id!==d.id});
+        ui.armed='';touch();render();
+      }else{
+        ui.armed=key;render();clearTimeout(armTm);armTm=setTimeout(function(){ui.armed='';render()},3500);
+      }
+      break;
+    case 'tick':
+      var r=st.routes.find(function(x){return x.id===d.id});
+      if(r&&r.steps[+d.i]){r.steps[+d.i].done=!r.steps[+d.i].done;touch();render()}
+      break;
+    case 'reset-route':
+      var rr=st.routes.find(function(x){return x.id===d.id});
+      if(rr){rr.steps.forEach(function(s){s.done=false});touch();render()}
+      break;
+    case 'step-add':syncDraft();draft.steps.push(mkStep());redrawSteps(true);break;
+    case 'step-rm':syncDraft();draft.steps.splice(+d.i,1);if(!draft.steps.length)draft.steps.push(mkStep());redrawSteps();break;
+    case 'step-up':syncDraft();var i=+d.i;if(i>0){var x=draft.steps[i];draft.steps[i]=draft.steps[i-1];draft.steps[i-1]=x}redrawSteps();break;
+    case 'step-down':syncDraft();var j=+d.i;if(j<draft.steps.length-1){var y=draft.steps[j];draft.steps[j]=draft.steps[j+1];draft.steps[j+1]=y}redrawSteps();break;
+    case 'mark':
+      var sl=st.pack.slots[+d.i];
+      if(sl&&sl.gid){sl.mark=(sl.mark===st.pack.mode)?'':st.pack.mode;touch();render()}
+      break;
+    case 'mode':st.pack.mode=d.v==='ok'?'ok':'x';touch();render();break;
+    case 'pack-reset':st.pack.slots.forEach(function(s){s.mark=''});touch();render();break;
+    case 'pack-zero':st.pack.cycles=0;touch();render();break;
+    case 'pick':formPick(+d.i);break;
+    case 'assign':st.pack.slots[+d.i]={gid:d.id,mark:''};touch();closeSheet();render();if(ui.hud)openPop('gums');break;
+    case 'clear-slot':st.pack.slots[+d.i]={gid:null,mark:''};touch();closeSheet();render();if(ui.hud)openPop('gums');break;
+    case 'lib-list':formLibList();break;
+    case 'lib-add':formLib(null,ui.pickSlot);break;
+    case 'lib-edit':formLib(d.id,null);break;
+    case 'lib-back':if(d.i!==''&&d.i!=null)formPick(+d.i);else formLibList();break;
+    case 'lib-del':
+      if(el.dataset.armed){
+        st.gumLib=st.gumLib.filter(function(x){return x.id!==d.id});
+        st.pack.slots.forEach(function(s){if(s.gid===d.id){s.gid=null;s.mark=''}});
+        delImg(d.id);touch();render();formLibList();
+      }else{
+        el.dataset.armed='1';el.textContent='Confirmar exclusão';el.classList.remove('ghost');el.classList.add('danger');
+      }
+      break;
+    case 'hud-open':if(st.timer){ui.hud=true;render();window.scrollTo(0,0)}break;
+    case 'hud-close':ui.hud=false;render();window.scrollTo(0,0);break;
+    case 'perk':
+      if(st.perks.on[d.n])delete st.perks.on[d.n];else st.perks.on[d.n]=true;
+      touch();render();break;
+    case 'bk-export':
+      try{
+        var blob=new Blob([JSON.stringify({app:'caderno-de-rounds',v:1,date:new Date().toISOString(),state:st,imgs:imgs})],{type:'application/json'});
+        var a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='caderno-de-rounds-backup-'+new Date().toISOString().slice(0,10)+'.json';
+        document.body.appendChild(a);a.click();
+        setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);
+        ui.bkMsg='Backup gerado. Procure o arquivo em Downloads.';
+      }catch(e){ui.bkMsg='Não foi possível gerar o backup.'}
+      var bm=$('#bk-msg');if(bm)bm.textContent=ui.bkMsg;
+      break;
+    case 'perks-edit':formPerks();break;
+    case 'pk-row-add':
+      var pr=$('#pk-rows');
+      if(pr&&pr.children.length<30){pr.insertAdjacentHTML('beforeend',pkRow(''));var nl=pr.lastElementChild.querySelector('.pk-name');if(nl)nl.focus()}
+      break;
+    case 'pk-row-del':
+      var rw=el.closest('.pk-row');if(rw)rw.remove();
+      break;
+    case 'pk-img-del':
+      var r2=el.closest('.pk-row');
+      if(r2){r2._img=null;r2._noimg=true;var pc=r2.querySelector('.pk-pic');if(pc)pc.innerHTML='<span class="gt-ph pk-none">Sem imagem</span>'}
+      break;
+    case 'map-open':
+      if(d.n){formMap(d.n);break}
+      openPop('maps');break;
+    case 'pop-gums':openPop('gums');break;
+    case 'pop-perks':openPop('perks');break;
+    case 'pop-maps':openPop('maps');break;
+    case 'map-new':
+      var nm=(($('#new-map')&&$('#new-map').value)||'').trim().slice(0,60);
+      if(!nm)break;
+      if(!st.maps[nm]){st.maps[nm]={pins:[]};touch()}
+      formMap(nm);break;
+    case 'mz-in':mvZoomBtn(1.4);break;
+    case 'mz-out':mvZoomBtn(1/1.4);break;
+    case 'pin-mode':
+      ui.pinMode=!ui.pinMode;
+      el.setAttribute('aria-pressed',String(ui.pinMode));
+      el.textContent=ui.pinMode?'Marcando: toque no mapa':'Marcar local';
+      var pl=$('#pin-lab'),mb=$('#mapbox');
+      if(pl)pl.hidden=!ui.pinMode;
+      if(mb)mb.classList.toggle('pinning',ui.pinMode);
+      break;
+    case 'pin-del':
+      var mp=st.maps[ui.mapName];
+      if(mp&&mp.pins[+d.i]){mp.pins.splice(+d.i,1);touch();redrawPins();render()}
+      break;
+    case 'map-rm':delImg(mapKey(ui.mapName));closeSheet();render();break;
+    case 'catalog':formCatalog();break;
+    case 'cat-set':formCatalog(d.v);break;
+    case 'cat-add':
+      if(addCat(+d.i)){touch();render();el.textContent='Na biblioteca';el.disabled=true;el.classList.remove('primary');el.classList.add('ghost')}
+      break;
+    case 'cat-all':
+      var cc=ui.cat||'classic',nAdd=0;
+      GUMS.forEach(function(c,k){if(c[0]===cc&&addCat(k))nAdd++});
+      if(nAdd){touch();render()}
+      formCatalog();
+      break;
+    case 't-start':
+      var map=($('#t-map').value||'').trim();
+      if(!map){$('#t-err').textContent='Informe o nome do mapa para iniciar.';break}
+      st.timer={map:map,round:1,splits:[],roundStart:Date.now(),pausedAt:null};
+      st.pack.slots.forEach(function(sl){sl.mark=''});
+      st.perks.on={};
+      ui.hud=true;ui.armed='';
+      touch();render();window.scrollTo(0,0);break;
+    case 't-next':
+      if(!t)break;
+      t.splits.push(roundMs(t));t.round++;t.roundStart=Date.now();t.pausedAt=null;
+      touch();render();break;
+    case 't-pause':
+      if(!t)break;
+      if(t.pausedAt){t.roundStart+=Date.now()-t.pausedAt;t.pausedAt=null}else t.pausedAt=Date.now();
+      touch();render();break;
+    case 't-back':
+      if(!t||!t.splits.length)break;
+      var last=t.splits.pop(),cur=roundMs(t);
+      t.round--;t.roundStart=(t.pausedAt||Date.now())-(last+cur);
+      touch();render();break;
+    case 't-finish':
+      if(!t)break;
+      t.splits.push(roundMs(t));
+      st.runs.unshift({id:uid(),map:t.map,date:new Date().toISOString(),round:t.round,splits:t.splits.slice(),total:t.splits.reduce(function(p,q){return p+q},0),note:''});
+      st.timer=null;ui.armed='';
+      if(ui.map&&ui.map!==st.runs[0].map)ui.map=st.runs[0].map;
+      touch();render();break;
+    case 't-discard':
+      if(ui.armed==='discard'){st.timer=null;ui.armed='';touch();render()}
+      else{ui.armed='discard';render();clearTimeout(armTm);armTm=setTimeout(function(){ui.armed='';render()},3500)}
+      break;
+  }
+});
+panel.addEventListener('submit',function(e){e.preventDefault();if(onSubmit)onSubmit(new FormData(panel))});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!sheet.hidden)closeSheet()});
+document.addEventListener('toggle',function(e){
+  var d=e.target;
+  if(d&&d.matches&&d.matches('details[data-id]')){if(d.open)ui.open.add(d.dataset.id);else ui.open.delete(d.dataset.id)}
+},true);
+document.addEventListener('change',function(e){
+  var t=e.target;
+  if(t&&t.id==='bk-file'&&t.files&&t.files[0]){
+    var fr=new FileReader();
+    fr.onerror=function(){ui.bkMsg='Não foi possível ler o arquivo.';render()};
+    fr.onload=function(){
+      try{
+        var d=JSON.parse(fr.result);
+        if(!d||d.app!=='caderno-de-rounds'||!d.state)throw 0;
+        st=norm(d.state);
+        var im=d.imgs&&typeof d.imgs==='object'?d.imgs:{};
+        Object.keys(im).forEach(function(k){if(typeof im[k]==='string'&&im[k].indexOf('data:image/')===0)imgs[k]=im[k]});
+        saveImgsLocal();
+        if(ref)Object.keys(im).forEach(function(k){ref.collection('imgs').doc(k).set({u:imgs[k]}).catch(function(){})});
+        ui.hud=!!st.timer;ui.bkMsg='Backup restaurado.';
+        touch();render();
+      }catch(e){ui.bkMsg='Esse arquivo não é um backup válido.';render()}
+    };
+    fr.readAsText(t.files[0]);
+    return;
+  }
+  if(t&&t.id==='m-file'&&t.files&&t.files[0]){useMapFile(t.files[0]);return}
+  if(t&&t.classList&&t.classList.contains('pk-file')&&t.files&&t.files[0]){
+    var row=t.closest('.pk-row');
+    toThumb(t.files[0]).then(function(u){
+      if(!row)return;
+      row._img=u;row._noimg=false;
+      var pc=row.querySelector('.pk-pic');if(pc)pc.innerHTML='<img class="gt-img" src="'+esc(u)+'" alt="Pré-visualização">';
+    }).catch(function(){ferr('Não foi possível ler esta imagem. Tente outro arquivo.')});
+    return;
+  }
+  if(t&&t.id==='l-img'&&t.files&&t.files[0]){
+    toThumb(t.files[0]).then(function(u){
+      pendingImg=u;
+      var pv=$('#lib-prev');if(pv)pv.innerHTML='<img class="gt-img" src="'+esc(u)+'" alt="Pré-visualização da imagem">';
+    }).catch(function(){ferr('Não foi possível ler esta imagem. Tente outro arquivo.')});
+    return;
+  }
+  if(t&&t.id==='lib-multi'&&t.files&&t.files.length){
+    addFiles(Array.from(t.files)).then(function(n){
+      ui.libMsg=n?(n===1?'1 imagem adicionada.':n+' imagens adicionadas.')+' Toque em um chiclete para dar o nome certo.':'Não foi possível ler as imagens escolhidas.';
+      formLibList();
+    });
+    return;
+  }
+  if(t&&t.dataset&&t.dataset.note){
+    var r=st.runs.find(function(x){return x.id===t.dataset.note});
+    if(r){r.note=t.value;touch()}
+  }
+});
+window.addEventListener('resize',function(){if($('#mapbox'))mvFit(true)});
+window.addEventListener('orientationchange',function(){setTimeout(function(){if($('#mapbox'))mvFit(true)},250)});
+document.addEventListener('paste',function(e){
+  var box=$('#pastebox');
+  if(!box||sheet.hidden)return;
+  var fl=(e.clipboardData&&e.clipboardData.files)||[],f=null;
+  for(var i=0;i<fl.length;i++){if(/^image\//.test(fl[i].type)){f=fl[i];break}}
+  if(!f)return;
+  e.preventDefault();
+  if(box.dataset.tgt==='map')useMapFile(f);else useGumFile(f);
+  box.textContent='Imagem colada.';
+});
+document.addEventListener('beforeinput',function(e){
+  var t=e.target;
+  if(t&&t.id==='pastebox'&&e.inputType!=='insertFromPaste')e.preventDefault();
+});
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible'){keepAwake();pull();updateTimer()}
+});
+
+ui.hud=!!st.timer;
+render();setSync('local');
+initDb();
+})();
+</script>
+
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
+</body>
+</html>
