@@ -218,6 +218,7 @@ textarea{resize:vertical}
 .pt.m-x{border-color:var(--bad)}
 .pt.m-ok{border-color:var(--good)}
 .pt .gt-img,.pt .gt-ph{border-radius:0;height:100%}
+.pn{position:absolute;left:4px;top:4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:rgba(0,0,0,.7);color:#fff;font:700 11px/18px var(--mono);text-align:center;pointer-events:none}
 .mk{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 44px/1 var(--display);color:#fff}
 .pt.m-x .mk{background:rgba(179,54,43,.68)}
 .pt.m-ok .mk{background:rgba(31,122,77,.68)}
@@ -770,8 +771,8 @@ function viewPack(compact){
   var slots=p.slots.map(function(s,i){
     var g=libGum(s.gid),mk=s.mark;
     var main=g
-      ?'<button type="button" class="pt'+(mk?' m-'+mk:'')+'" data-act="mark" data-i="'+i+'" aria-label="'+esc(g.name)+': '+(mk==='x'?'marcado com X':mk==='ok'?'marcado com confere':'sem marca')+'">'+tile(g)+(mk?'<span class="mk" aria-hidden="true">'+(mk==='x'?'✕':'✓')+'</span>':'')+'</button>'
-      :'<button type="button" class="pt blank" data-act="pick" data-i="'+i+'" aria-label="Escolher chiclete para o espaço '+(i+1)+'"><span aria-hidden="true">+</span></button>';
+      ?'<button type="button" class="pt'+(mk?' m-'+mk:'')+'" data-act="mark" data-i="'+i+'" aria-label="'+esc(g.name)+': '+(mk==='x'?'marcado com X':mk==='ok'?'marcado com confere':'sem marca')+'">'+tile(g)+(mk?'<span class="mk" aria-hidden="true">'+(mk==='x'?'✕':'✓')+'</span>':'')+'<span class="pn" aria-hidden="true">'+(i+1)+'</span></button>'
+      :'<button type="button" class="pt blank" data-act="pick" data-i="'+i+'" aria-label="Escolher chiclete para o espaço '+(i+1)+'"><span aria-hidden="true">+</span><span class="pn" aria-hidden="true">'+(i+1)+'</span></button>';
     return '<div class="slot">'+main+(g?'<span class="sname">'+esc(g.name)+'</span>':'')+'<button type="button" class="link" data-act="pick" data-i="'+i+'">'+(g?'trocar':'escolher')+'</button></div>';
   }).join('');
   var msg=full?'Pack completo! Reiniciando as marcas…':(ui.packMsg||'');
@@ -874,9 +875,9 @@ function perkTile(n){
 }
 function perkChips(){
   var P=st.perks;
-  return '<div class="slots perk-slots">'+P.names.map(function(n){
+  return '<div class="slots perk-slots">'+P.names.map(function(n,pi){
     var on=!!P.on[n];
-    return '<div class="slot"><button type="button" class="pt'+(on?' m-ok':'')+'" data-act="perk" data-n="'+esc(n)+'" aria-pressed="'+on+'" aria-label="'+esc(n)+': '+(on?'já pegou':'ainda não pegou')+'">'+perkTile(n)+(on?'<span class="mk" aria-hidden="true">✓</span>':'')+'</button><span class="sname">'+esc(n)+'</span></div>';
+    return '<div class="slot"><button type="button" class="pt'+(on?' m-ok':'')+'" data-act="perk" data-n="'+esc(n)+'" aria-pressed="'+on+'" aria-label="Perk '+(pi+1)+', '+esc(n)+': '+(on?'já pegou':'ainda não pegou')+'">'+perkTile(n)+(on?'<span class="mk" aria-hidden="true">✓</span>':'')+'<span class="pn" aria-hidden="true">'+(pi+1)+'</span></button><span class="sname">'+esc(n)+'</span></div>';
   }).join('')+'</div>';
 }
 function miniPerks(){
@@ -1677,6 +1678,38 @@ function voiceSet(msg){voice.msg=msg||'';var e=$('#voice-st');if(e)e.textContent
 function vnorm(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
 var NUMS={'um':1,'uma':1,'1':1,'dois':2,'duas':2,'2':2,'tres':3,'3':3,'quatro':4,'4':4,'cinco':5,'5':5};
 var PERK_ALIAS={'Quick Revive':['revive','quick'],'Juggernog':['jugger nog','juggernaut','jugernog','juger','jugger'],'Speed Cola':['speed','speedcola'],'Double Tap':['doubletap','double','dabol tap'],'Stamin-Up':['stamin up','stamina up','stamina','estamina'],'Mule Kick':['mulekick','mule','mula'],"Widow's Wine":['widows wine','widow','viuva'],'Electric Cherry':['cherry','cereja','eletric'],'Deadshot Daiquiri':['dead shot','deadshot','daiquiri'],'PhD Flopper':['phd','p h d','flopper','fidi']};
+var UN={zero:0,um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,catorze:14,quatorze:14,quinze:15,dezesseis:16,dezessete:17,dezoito:18,dezenove:19};
+var DZ={vinte:20,trinta:30,quarenta:40,cinquenta:50,sessenta:60,setenta:70,oitenta:80,noventa:90};
+var CT={cem:100,cento:100,duzentos:200,trezentos:300,quatrocentos:400,quinhentos:500,seiscentos:600,setecentos:700,oitocentos:800,novecentos:900};
+var FILL={numero:1,o:1,a:1,os:1,as:1,de:1,do:1,da:1,para:1,no:1,na:1,perk:1,perks:1,bebida:1};
+function ptNum(txt){
+  var toks=vnorm(txt).split(' ').filter(Boolean),total=0,got=false;
+  for(var i=0;i<toks.length;i++){
+    var w=toks[i],v;
+    if(/^\d+$/.test(w)){if(!got)return parseInt(w,10);break}
+    if(w==='e'&&got)continue;
+    v=UN[w]!==undefined?UN[w]:DZ[w]!==undefined?DZ[w]:CT[w]!==undefined?CT[w]:undefined;
+    if(v===undefined){if(got)break;if(FILL[w])continue;return null}
+    total+=v;got=true;
+  }
+  return got?total:null;
+}
+function perkByIndex(txt){
+  var n=ptNum(txt);
+  if(n==null)return null;
+  return {n:n,name:(n>=1&&n<=st.perks.names.length)?st.perks.names[n-1]:''};
+}
+function setRoundTo(n){
+  var t=st.timer;
+  if(!t)return '';
+  if(n<1||n>999)return 'Round inválido';
+  if(n===t.round)return 'Já está no round '+n;
+  if(n>t.round){t.splits.push(roundMs(t));while(t.splits.length<n-1)t.splits.push(0)}
+  else t.splits.length=n-1;
+  t.round=n;t.roundStart=Date.now();t.pausedAt=null;
+  touch();render();
+  return 'Round '+n;
+}
 function voicePerk(q){
   var best='',bl=0;
   st.perks.names.forEach(function(n){
@@ -1712,6 +1745,10 @@ function voiceCmd(q){
   if(/\b(fechar|fecha)\b/.test(q)){if(!sheet.hidden){fireAct('close');return 'Fechado'}return ''}
   if(!t)return '';
   if(/(proximo|proxima) (round|rodada)|\bpassou\b|\bnovo round\b|\bnext round\b/.test(q)){fireAct('t-next');return 'Round '+st.timer.round}
+  if(m=q.match(/\b(round|rodada)\s+(.+)$/)){
+    var rn=ptNum(m[2]);
+    if(rn!=null&&!/^(proximo|proxima)\b/.test(q))return setRoundTo(rn);
+  }
   if(/(voltar|volta|desfazer) (o |a )?(round|rodada)/.test(q)){
     if(!t.splits.length)return 'Não há round anterior';
     fireAct('t-back');return 'Voltou para o round '+st.timer.round;
@@ -1737,12 +1774,14 @@ function voiceCmd(q){
     return 'Chiclete '+n+(mk==='x'?': X':': confere');
   }
   if(m=q.match(/(perdi|tirar|desmarcar) (o |a )?(perk |bebida )?(.+)/)){
-    var pk0=voicePerk(m[4]);
-    if(pk0){delete st.perks.on[pk0];touch();render();return pk0+': desmarcado'}
+    var pi0=perkByIndex(m[4]),pk0=pi0?pi0.name:voicePerk(m[4]);
+    if(pi0&&!pi0.name)return 'Não existe o perk '+pi0.n;
+    if(pk0){delete st.perks.on[pk0];touch();render();return 'Perk '+(st.perks.names.indexOf(pk0)+1)+', '+pk0+': desmarcado'}
   }
   if(m=q.match(/(peguei|pegou|comprei|perk|bebida|tenho) (o |a )?(.+)/)){
-    var pk=voicePerk(m[3]);
-    if(pk){st.perks.on[pk]=true;touch();render();return pk+': marcado'}
+    var pi1=perkByIndex(m[3]),pk=pi1?pi1.name:voicePerk(m[3]);
+    if(pi1&&!pi1.name)return 'Não existe o perk '+pi1.n;
+    if(pk){st.perks.on[pk]=true;touch();render();return 'Perk '+(st.perks.names.indexOf(pk)+1)+', '+pk+': marcado'}
   }
   return '';
 }
@@ -1804,9 +1843,9 @@ function voiceBtn(){
 }
 function voiceHelp(){
   openSheet('<h2>Comandos de voz</h2><p class="hint">Fale perto do microfone, em português. Funciona só com internet. Com o jogo alto ou chat de voz, ele pode errar ou entender coisas que você não pediu.</p>'+
-    '<ul class="vhelp"><li><b>“próximo round”</b>, “passou”: avança o round</li><li><b>“voltar round”</b>: volta um round</li><li><b>“pausar”</b> e <b>“retomar”</b></li>'+
+    '<ul class="vhelp"><li><b>“próximo round”</b>, “passou”: avança o round</li><li><b>“round 50”</b>, “rodada sessenta”, “ir para o round 75”: vai direto para esse round</li><li><b>“voltar round”</b>: volta um round</li><li><b>“pausar”</b> e <b>“retomar”</b></li>'+
     '<li><b>“chiclete 3”</b>: marca o chiclete 3 do pack (do 1 ao 5)</li><li>“chiclete 3 X” ou “chiclete 3 confere”</li><li>“desmarcar chiclete 3”</li><li>“modo X” e “modo confere”: como marcar por padrão</li>'+
-    '<li><b>“peguei Juggernog”</b>, “perk Speed Cola”: marca o perk</li><li>“perdi Juggernog”: desmarca o perk</li>'+
+    '<li><b>“peguei perk 1”</b>, “peguei perk 2”…: marca o perk pelo número (o número aparece no canto de cada perk)</li><li>“peguei Juggernog”, “perk Speed Cola”: marca pelo nome</li><li>“perdi perk 1” ou “perdi Juggernog”: desmarca</li>'+
     '<li>“abrir chicletes”, “abrir perks”, “abrir mapa”, “fechar”</li><li>“iniciar partida”: depois de escolher o mapa</li><li><b>“finalizar partida”</b>, depois “confirmar”</li></ul>'+
     '<div class="btns"><button type="button" class="btn primary" data-act="close">Fechar</button></div>',function(){},'view');
 }
