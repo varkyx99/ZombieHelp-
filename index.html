@@ -3,41 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0F1419">
-<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0a0606">
+<meta name="color-scheme" content="dark">
 <title>Caderno de Rounds</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
 /* Layout: caderno de campo em abas (estratégias, rotas, tempo, chicletes), coluna única de até 680px, barra de abas fixa embaixo. Ousadia concentrada no cronômetro com faixa de alerta. */
 :root{
-  --bg:#E5E8EA;
-  --surface:#F3F5F6;
-  --surface-2:#D9DEE1;
-  --fg:#141A20;
-  --muted:#56626C;
-  --line:#C3CBD0;
-  --accent:#E8A810;
-  --accent-ink:#141A20;
-  --accent-text:#7A4E00;
-  --good:#1F7A4D;
-  --bad:#B3362B;
+  --bg:#0a0606;
+  --surface:#150c0c;
+  --surface-2:#231111;
+  --fg:#f1e7dc;
+  --muted:#b39c8d;
+  --line:#40201b;
+  --accent:#ff6a00;
+  --accent-ink:#1a0603;
+  --accent-text:#ff8a2a;
+  --red:#c4161c;
+  --good:#8fd14f;
+  --bad:#ff5a4a;
   --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --stencil:"Black Ops One","Big Shoulders Display",Impact,sans-serif;
   --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0F1419;--surface:#171E26;--surface-2:#1F2831;--fg:#E7ECEF;--muted:#93A0AB;--line:#2B3640;
-    --accent:#F2B01E;--accent-ink:#141A20;--accent-text:#F2B01E;--good:#4CC58A;--bad:#EF6B5E;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0F1419;--surface:#171E26;--surface-2:#1F2831;--fg:#E7ECEF;--muted:#93A0AB;--line:#2B3640;
-  --accent:#F2B01E;--accent-ink:#141A20;--accent-text:#F2B01E;--good:#4CC58A;--bad:#EF6B5E;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -241,7 +232,7 @@ textarea{resize:vertical}
 .pack+.clock{margin-top:12px}
 .cat-list{display:grid}
 .cat-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
-.cat-t{width:48px;height:48px;font-size:16px}
+.cat-t{width:48px;height:48px;font-size:16px;border-radius:8px;flex:none}
 .cat-i{display:grid;gap:2px;min-width:0}
 .cat-i b{overflow-wrap:anywhere}
 .cat-i small{color:var(--muted);font:500 11px var(--mono)}
@@ -323,6 +314,67 @@ select{width:100%;min-height:44px;padding:0 10px;border:1px solid var(--line);bo
   .hud .perk .pk-i{width:min(34px,7vh);height:min(34px,7vh)}
 }
 @media (prefers-reduced-motion:no-preference){.chev{transition:transform .15s}}
+
+/* ---------- visual zumbi: preto, vermelho sangue e laranja ---------- */
+::selection{background:var(--red);color:#fff}
+body{background:radial-gradient(130% 55% at 50% -8%,#4a0c09 0%,rgba(74,12,9,0) 62%),radial-gradient(90% 40% at 100% 100%,#2a0a05 0%,rgba(42,10,5,0) 70%),var(--bg);background-attachment:fixed}
+.top{position:relative;padding-bottom:16px}
+.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--red),var(--accent) 55%,rgba(255,106,0,0));box-shadow:0 0 14px rgba(196,22,28,.55)}
+.brand{font:400 27px/1 var(--stencil);letter-spacing:.05em;color:var(--accent);text-shadow:0 0 18px rgba(255,80,0,.4),2px 2px 0 #5a0a0c}
+.brand small{color:#d9473a;text-shadow:none;letter-spacing:.18em}
+.card,.clock,.cover-wrap,.empty{border-color:var(--line);border-left:3px solid var(--red);box-shadow:0 2px 14px rgba(0,0,0,.45)}
+.card{background:linear-gradient(180deg,#1a0e0e,var(--surface))}
+.sec-h h2{font:400 22px/1.1 var(--stencil);letter-spacing:.05em;color:var(--fg);text-shadow:2px 2px 0 #4a0709}
+.sec-h.sub h3{color:var(--accent-text)}
+.btn{border-color:#5a2a22;background:#1d1010}
+.btn.primary{background:linear-gradient(180deg,#ff7a14,#d4380a);border-color:#ff7a14;color:var(--accent-ink);box-shadow:0 0 14px rgba(255,90,0,.3)}
+.btn.danger{background:var(--red);border-color:var(--red)}
+.chip{background:#1d1010;border-color:#5a2a22}
+.chip[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.tabs{background:rgba(14,6,6,.96);border-top:2px solid var(--red);box-shadow:0 -4px 20px rgba(196,22,28,.25)}
+.tab[aria-current="page"]{background:#2a0f0d;color:var(--fg);box-shadow:inset 0 2px 0 var(--accent)}
+.tab[aria-current="page"] svg{color:var(--accent)}
+.plate{background:#2a0f0d;border-left:3px solid var(--accent)}
+.plate b{color:var(--accent);text-shadow:0 0 10px rgba(255,90,0,.35)}
+.tag.map{color:var(--accent-text);border-color:var(--accent-text)}
+.clock::before{height:12px;background:repeating-linear-gradient(135deg,var(--accent) 0 12px,#0a0606 12px 24px)}
+.rno{font-family:var(--stencil);font-weight:400;color:var(--accent);text-shadow:0 0 14px rgba(255,80,0,.4)}
+.big{color:#fff;text-shadow:0 0 22px rgba(255,70,0,.45)}
+.next{font-family:var(--stencil);font-weight:400;letter-spacing:.08em}
+.step.done .node{box-shadow:0 0 10px rgba(255,90,0,.5)}
+.node{border-color:var(--accent-text)}
+.cover i.on{background:linear-gradient(180deg,var(--accent),var(--red))}
+.scrim{background:rgba(6,2,2,.72)}
+.pin{background:var(--accent);border-color:#000;box-shadow:0 0 8px rgba(255,90,0,.7)}
+.map-t{position:relative}
+.map-t .gt-img{border:1px solid #5a2a22}
+.mapthumb{border-color:#5a2a22;box-shadow:0 0 0 1px #000,0 4px 16px rgba(0,0,0,.5)}
+.mapthumb.art::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.55))}
+.mapthumb.art .mt-l{z-index:1;background:rgba(196,22,28,.85)}
+.mt-l{background:rgba(196,22,28,.85);letter-spacing:.04em}
+.pt{border-color:#5a2a22}
+.pt.m-ok .mk{background:rgba(70,120,30,.7)}
+.pt.m-x .mk{background:rgba(196,22,28,.72)}
+.pn{background:rgba(196,22,28,.9)}
+input,select,textarea{background:#1a0d0d;color:var(--fg);border-color:#5a2a22}
+
+.rec{padding:0}
+.rec summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) 14px;gap:12px;align-items:center;padding:12px 14px;cursor:pointer;min-height:56px}
+.rec summary::-webkit-details-marker{display:none}
+.rec[open] .chev{transform:rotate(-135deg);margin-top:4px}
+.rec .r-no{color:var(--accent)}
+.rrow{display:grid;grid-template-columns:34px 1fr 1.3fr 1.1fr;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font:500 12.5px var(--mono);font-variant-numeric:tabular-nums}
+.rrow.hd{font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rrow small{display:block;color:var(--muted);font-size:10px}
+.rrow .up{color:var(--good)}.rrow .dn{color:var(--accent-text)}
+.rbar{grid-column:2/-1;height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.rbar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--accent))}
+.cmp-h{margin:14px 0 6px;font:700 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent-text)}
+.cmp{overflow-x:auto}
+.cmp-r{display:grid;grid-template-columns:62px 40px 58px repeat(3,1fr);gap:6px;padding:6px 0;border-bottom:1px solid var(--line);font:500 12px var(--mono);font-variant-numeric:tabular-nums;min-width:330px;white-space:nowrap}
+.cmp-r.hd{font:500 10px var(--mono);color:var(--muted);text-transform:uppercase}
+.cmp-r .best{color:var(--accent);font-weight:700}
+.fin{border-left-color:var(--accent);margin-top:10px}.fin p{margin:6px 0 10px;color:var(--fg)}
 </style>
 </head>
 <body>
@@ -395,11 +447,47 @@ function normMaps(m){
   });
   return out;
 }
-function norm(d){
+var CHK=[10,20,30,50,70,100];
+function atRound(run,n){
+  var sp=run&&Array.isArray(run.splits)?run.splits:null;
+  if(!sp||!(run.round>=n)||sp.length<n-1)return null;
+  var t=0;for(var i=0;i<n-1;i++){var v=+sp[i];if(!(v>=0))return null;t+=v}
+  return t;
+}
+function recInto(R,run){
+  if(!run||!run.map)return;
+  var r=R[run.map]||(R[run.map]={maxRound:0,maxDate:'',best:0,t:{}});
+  var rd=+run.round||0;
+  if(rd>r.maxRound||(rd===r.maxRound&&run.total&&(!r.best||run.total<r.best))){r.maxRound=rd;r.maxDate=run.date||'';r.best=+run.total||0}
+  CHK.forEach(function(n){var v=atRound(run,n);if(v!=null&&(!r.t[n]||v<r.t[n]))r.t[n]=v});
+}
+function normRecords(rc,runs){
+  var R={};
+  if(rc&&typeof rc==='object')Object.keys(rc).forEach(function(k){
+    var v=rc[k];if(!v||typeof v!=='object')return;
+    var t={};CHK.forEach(function(n){if(v.t&&+v.t[n]>0)t[n]=+v.t[n]});
+    R[k]={maxRound:+v.maxRound||0,maxDate:String(v.maxDate||''),best:+v.best||0,t:t};
+  });
+  arr(runs).forEach(function(x){try{recInto(R,x)}catch(e){}});
+  return R;
+}
+var PRESET_KINO=[{"id": "kino-furney-1", "map": "Kino der Toten", "from": 1, "to": 1, "title": "Pack de 5 chicletes para a estratégia", "tags": ["Chicletes", "Preparação"], "plan": "• À Vista de Todos: 10 s sem dano dos zumbis (2 ativações). Para rounds altos, quando travar, no lugar de gastar a Thunder.\n• Esfolada de Espada: corpo a corpo 5× por 2:30. Para os primeiros rounds, farmar pontos e montar o setup cedo.\n• Qualquer Lugar, Menos Aqui!: 2 ativações. Também para rounds muito altos, quando travar e não quiser usar a Thunder.\n• Chiclete azul (anda mais rápido enquanto mira, troca mais rápido entre mira e tiro livre): só para completar o pack. Pode trocar por qualquer um dos outros.\n• Antítese Alquímica: o mais importante. 2 ativações, cada pontuação vira munição, quase munição infinita.\n• Alternativa ao azul: Crítico da Sorte (mais chance de ativar a munição alternativa, o Fio Morto). Não pesa, porque o Double Tap ajuda a ativar mais rápido.\n\nFonte: transcrição do vídeo do Furney (Kino der Toten)."}, {"id": "kino-furney-2", "map": "Kino der Toten", "from": 1, "to": 5, "title": "Rounds 1 a 5: farmar 10 mil pontos na sala inicial", "tags": ["Abertura", "Chicletes", "Pontos"], "plan": "• Objetivo: sair do round 5 com cerca de 9 a 11 mil pontos.\n• Todo round, assim que começa, a máquina de chicletes custa 0 pontos. Compre no 1, 2, 3, 4 e 5, tentando tirar a Esfolada de Espada.\n• Round 1: M1911, alguns tiros e facada. Round 2: o mesmo, com um pouco mais de tiro. Round 3 em diante: comece com a RK5 e facada.\n• Se a Esfolada vier no 1, 2 ou 3, siga só com facadas. O ideal é ela vir no 4 ou 5.\n• Comece já com a RK5. Não compre arma na parede (economiza 500 pontos), não compre a Shiva, não abra porta e não gaste com nada.\n• O round 6 tem cachorros. Saia da sala inicial por volta do round 6, quando já tiver os pontos.\n\nFonte: transcrição do vídeo do Furney (Kino der Toten)."}, {"id": "kino-furney-3", "map": "Kino der Toten", "from": 6, "to": 10, "title": "Rounds 6 a 10: abrir o mapa, energia, Jugger e Bowie", "tags": ["Abertura", "Perks", "Pontos"], "plan": "• Abra o mapa pelo lado direito, abrindo todas as portas. Não pare para salvar zumbi, comprar a caixa ou fazer qualquer outra coisa.\n• Ligue a energia no teatro principal.\n• Compre o Juggernog e a Bowie Knife. Com cerca de 10 mil pontos dá para abrir tudo e comprar as duas. Se faltar, compre primeiro a Bowie e depois o Jugger.\n• A Bowie evita a explosão do Sméagol quando você o mata. Assim você não perde os zumbis em volta dele, que valem pontos.\n• Continue comprando chiclete a 0 pontos em qualquer máquina, todo round que vira. Se pegar a Esfolada no 9 ou 10, a Bowie rende ainda mais pontos.\n• Por volta do round 10, você deve ter de 20 a 25 mil pontos.\n\nFonte: transcrição do vídeo do Furney (Kino der Toten)."}, {"id": "kino-furney-4", "map": "Kino der Toten", "from": 10, "to": 20, "title": "Thunder Gun, Pack-a-Punch e M8", "tags": ["Thunder Gun", "Pack-a-Punch", "Caixa"], "plan": "• Com 20 a 25 mil pontos, procure a caixa misteriosa. Esses pontos são para a Thunder Gun.\n• Melhor se a caixa não estiver na sala da M8, mas se estiver, tudo bem.\n• A porta do teatro principal que vai para a sala da M8 deve ficar sempre fechada. Se abrir por acidente, reinicie a partida.\n• Se você cair (downar) em qualquer etapa até aqui, reinicie. Se gastar 25 mil e a Thunder não vier, reinicie também: com essa quantia, ela costuma vir.\n• Não importa se tirar a caixa do lugar uma ou duas vezes para pegar a Thunder.\n• Pegou a Thunder: com cerca de 5 mil pontos, ligue o teleporter e faça Pack-a-Punch nela. Se sobrar mais, compre a M8 e faça Pack nela também.\n• Estratégia mais difícil (hardcore): leve a VMP em vez da M8.\n• Coloque carregador rápido (Fast Mag) nas armas, menos na Thunder Gun.\n\nFonte: transcrição do vídeo do Furney (Kino der Toten)."}, {"id": "kino-furney-5", "map": "Kino der Toten", "from": 10, "to": 30, "title": "Perks: quais levar (só 4 slots)", "tags": ["Perks"], "plan": "• Quick Revive: compre só quando o setup (Thunder e M8) estiver pronto. Sem ele, se cair a partida acaba.\n• Fixos: Quick Revive, Juggernog e Double Tap. Falta 1 slot, e a escolha é sua:\n• Speed Cola: recarrega mais rápido a Thunder e a M8/VMP. É o preferido do vídeo. Está no mapa.\n• Stamin-Up: corre mais. Fica na máquina Wonder Fizz.\n• Mule Kick: 3ª arma (Thunder + M8/VMP com Fio Morto + outra). É o melhor, mas o mais difícil de usar. Se cair, você perde a arma e precisa alternar entre 3 armas o tempo todo. Está no mapa.\n• Com chicletes clássicos, não dá para levar mais perks do que isso.\n• O Pack-a-Punch da M8 pode esperar até o round 30. Ela não é a arma principal da estratégia.\n\nFonte: transcrição do vídeo do Furney (Kino der Toten)."}, {"id": "kino-furney-6", "map": "Kino der Toten", "from": 10, "to": 60, "title": "Casual (mais segura): sala da M8, só de Thunder", "tags": ["Estratégia casual", "Thunder Gun", "Antítese"], "plan": "• Fique na sala da M8, com a porta que vai para o teatro fechada. Lá tem a armadilha, a máquina de chicletes, a M8 na parede e duas janelas.\n• Posição: parado na porta que dá para a escada. Atire para a esquerda nos zumbis das duas janelas e para a escada nos que vêm de baixo.\n• Use só a Thunder Gun com a Antítese Alquímica. Não precisa pensar na M8. Dá para ir até o round 50, 55 ou 60.\n• Quando a munição da Thunder acabar, ative a Antítese.\n• Round de cachorros dá Max Ammo. Se você não tirar a caixa do lugar, não vem Sale no lugar do Max Ammo. Cada 10 rounds tem 2 rounds de cachorros.\n• Compre chiclete todo round a 0 pontos, mesmo que já tenha a Antítese. Nunca gaste pontos na máquina.\n\nFonte: transcrição do vídeo do Furney (Kino der Toten)."}, {"id": "kino-furney-7", "map": "Kino der Toten", "from": 10, "to": 60, "title": "Casual: drops, Insta Kill e Minigun", "tags": ["Estratégia casual", "Drops", "Dicas"], "plan": "• Max Ammo: gaste os tiros da Thunder antes e pegue o drop.\n• Insta Kill: se não ativou a Antítese, limpe o espaço, pegue o drop e atire só com a M8 (Pack, de preferência) encostado num canto. Dura 30 s. Quando começar a piscar, prepare a área para trocar de volta para a Thunder, sem deixar zumbi te travar.\n• Minigun: use encostado no cantinho, segurando o gatilho. Insta Kill e Minigun poupam a munição da Thunder e atrasam o uso da Antítese.\n• Ative a Antítese quando a Thunder chegar a uns 4 tiros. Nunca espere ter só 1 bala: ao atirar a última, o personagem troca de arma sozinho e pode te derrubar.\n• Drop caído embaixo da escada: perigoso. Reserve 2 tiros para descer e 2 para subir, e não carregue a Thunder na escada.\n• Falta de atenção é o que mais acaba com a partida. O vídeo diz que chegar ao 50 já é uma vitória, e ao 60 é uma partida excelente.\n\nFonte: transcrição do vídeo do Furney (Kino der Toten)."}, {"id": "kino-furney-8", "map": "Kino der Toten", "from": 1, "to": 100, "title": "Como funciona o ciclo de chicletes", "tags": ["Chicletes", "Dicas"], "plan": "• Compre chiclete a 0 pontos toda vez que o round vira, em qualquer máquina.\n• O pack tem 5 chicletes e eles saem em ciclos: os 5 saem numa ordem aleatória, depois começa outro ciclo de 5.\n• Se você nunca perder um round de compra, a Antítese Alquímica sai quase sempre na hora que precisa.\n• Mesmo que a Antítese venha no pack, continue comprando para virar o ciclo.\n• Com a Antítese, cada 10 pontos vira 1 munição. A Thunder com Pack tem 28 tiros, o suficiente para umas 28 hordas, e até 40 sem a Antítese.\n• Não gaste pontos na máquina de chicletes (preços de 2 mil, 8 mil etc.). É um erro.\n\nFonte: transcrição do vídeo do Furney (Kino der Toten)."}, {"id": "kino-furney-9", "map": "Kino der Toten", "from": 15, "to": 60, "title": "Hardcore (speedrun): oito entre a máquina de chicletes e o Double Tap", "tags": ["Estratégia hardcore", "Speedrun", "Thunder Gun"], "plan": "• É a estratégia dos speedrunners, a mais rápida e a mais difícil. Exige atenção total.\n• Armas citadas: Thunder Gun, VMP com Fio Morto e LK com Virado (os nomes vêm da transcrição, confira no jogo).\n• Posição: na frente do Double Tap. Perto ficam a janela ao lado, a porta da armadilha de fogo, a janela do fundo da área da VMP, a escada e o teto.\n• Fique correndo em oito entre a máquina de chicletes e o Double Tap, com a Thunder Gun sempre na mão.\n• Até o round 15 a 18, a M8 ou a VMP com Pack bastam para limpar os zumbis. Depois disso, Thunder e Antítese.\n• Todo round compre a máquina de chicletes, mesmo já tendo a Antítese, para virar o ciclo.\n• O ciclo: Thunder, gastar todas as balas, Antítese, de novo.\n• Drops (Max Ammo, Insta Kill, Minigun): pegue sempre que não estiver usando a Antítese. Com Insta Kill, use a VMP.\n\n(A transcrição enviada termina aqui; o restante da estratégia hardcore não ficou no arquivo.)\n\nFonte: transcrição do vídeo do Furney (Kino der Toten)."}];
+function applyPresets(o,d){
+  o.presets=arr(d.presets).filter(function(x){return typeof x==='string'});
+  if(o.presets.indexOf('kino-furney-1')<0){
+    var have={};o.strategies.forEach(function(x){have[x.id]=1});
+    o.strategies=o.strategies.concat(PRESET_KINO.filter(function(x){return !have[x.id]}).map(function(x){return JSON.parse(JSON.stringify(x))}));
+    o.presets.push('kino-furney-1');
+  }
+  return o;
+}
+function norm(d){d=d||{};return applyPresets(normBase(d),d)}
+function normBase(d){
   d=d||{};
   return {strategies:arr(d.strategies),routes:arr(d.routes),runs:arr(d.runs),gums:arr(d.gums),
     gumLib:arr(d.gumLib).filter(function(g){return g&&g.id}),pack:normPack(d.pack),perks:normPerks(d.perks),maps:normMaps(d.maps),
-    timer:(d.timer&&typeof d.timer==='object')?d.timer:null};
+    timer:(d.timer&&typeof d.timer==='object')?d.timer:null,
+    records:normRecords(d.records,d.runs)};
 }
 function seed(){
   var m='Mapa de exemplo';
@@ -692,10 +780,62 @@ function runCard(run){
     '<label for="n-'+run.id+'">Anotação<textarea id="n-'+run.id+'" data-note="'+run.id+'" rows="3" placeholder="O que funcionou, onde perdeu tempo">'+esc(run.note||'')+'</textarea></label>'+
     '<div class="acts" style="margin:0">'+delBtn('runs',run.id)+'</div></div></details>';
 }
+/* recordes de speedrunners: zwr.gg, tempo solo até o round 30 e 50 (consultado em 10/10/2026) */
+var WR={'Nacht der Untoten':['37:40','oJumpy','1:34:57','oJumpy'],'Verrückt':['29:08','Zombie Dawg','55:42','FadedZ'],'Shi No Numa':['29:48','oJumpy','1:00:21','oJumpy'],'Der Riese':['27:31','Mystic','57:40','Mystic'],'Kino der Toten':['28:02','Zombie Dawg','52:59','Zombie Dawg'],'Ascension':['27:38','Zombie Dawg','52:08','Zombie Dawg'],'Call of the Dead':['33:48','Mystic','1:21:57','Prompt'],'Shangri-La':['30:54','GannonSnipes','1:03:44','GannonSnipes'],'Moon':['27:08','GannonSnipes','47:01','GannonSnipes'],'Nuketown Zombies':['35:11','SecondaryColors','1:37:43','Huth'],'Die Rise':['25:39','SecondaryColors','49:22','issue'],'Mob of the Dead':['30:32','Ju Frouge','1:10:23','Chris Voltage'],'Buried':['28:11','Vexxo','1:03:06','Curve'],'Origins':['30:20','oJumpy','1:01:19','oJumpy'],'TranZit':['31:18','White_Sz','1:07:31','White_Sz'],'Shadows of Evil':['27:55','FadedZ','53:09','FadedZ'],'The Giant':['27:28','FadedZ','51:37','FadedZ'],'Der Eisendrache':['28:54','oJumpy','56:13','Mangos'],'Zetsubou No Shima':['27:46','GannonSnipes','1:01:24','oJumpy'],'Gorod Krovi':['30:19','oJumpy','1:05:13','oJumpy'],'Revelations':['28:44','Lucifire','55:26','oJumpy']};
+function parseT(x){var ms=0;String(x).split(':').forEach(function(p){ms=ms*60+(+p||0)});return ms*1000}
+function wrFor(map,n){
+  var w=WR[String(map||'').trim()];
+  if(!w)return null;
+  if(n===30)return {ms:parseT(w[0]),txt:w[0],who:w[1]};
+  if(n===50)return {ms:parseT(w[2]),txt:w[2],who:w[3]};
+  return null;
+}
+function fdiff(ms){return (ms<0?'−':'+')+fmt(Math.abs(ms))}
+function recMaps(){
+  var set={},out=[];
+  var add=function(n){if(n&&!set[n]){set[n]=1;out.push(n)}};
+  st.runs.forEach(function(r){add(r.map)});
+  Object.keys(st.records||{}).forEach(add);
+  return out.filter(function(m){return !ui.map||m===ui.map});
+}
+function recCard(map,only){
+  var R=(st.records||{})[map]||{maxRound:0,best:0,t:{}};
+  var runs=st.runs.filter(function(x){return x.map===map});
+  var rows=CHK.filter(function(n){return R.t[n]||wrFor(map,n)}).map(function(n){
+    var me=R.t[n],w=wrFor(map,n);
+    var d='',bar='';
+    if(w){
+      if(me){
+        var df=me-w.ms;
+        d='<span class="'+(df<=0?'up':'dn')+'">'+fdiff(df)+'</span>';
+        bar='<span class="rbar" aria-hidden="true"><i style="width:'+Math.max(4,Math.min(100,Math.round(w.ms/me*100)))+'%"></i></span>';
+      }else d='<span class="muted">ainda não chegou</span>';
+    }
+    return '<div class="rrow"><b>R'+n+'</b><span>'+(me?fmt(me):'—')+'</span><span>'+(w?w.txt+'<small>'+esc(w.who)+'</small>':'—')+'</span><span>'+d+'</span>'+bar+'</div>';
+  }).join('');
+  var last=runs.slice(0,6);
+  var cols=[10,20,30];
+  var bestCol={};
+  cols.forEach(function(n){var m=0;last.forEach(function(r){var v=atRound(r,n);if(v!=null&&(!m||v<m))m=v});bestCol[n]=m});
+  var cmp=last.length>1?'<div class="cmp-h">Comparação entre as últimas partidas</div><div class="cmp"><div class="cmp-r hd"><span>Data</span><span>Round</span><span>Total</span><span>R10</span><span>R20</span><span>R30</span></div>'+last.map(function(r){
+    return '<div class="cmp-r"><span>'+fdate(r.date)+'</span><span'+(r.round===R.maxRound?' class="best"':'')+'>R'+r.round+'</span><span'+(R.best&&r.total===R.best&&r.round===R.maxRound?' class="best"':'')+'>'+fmt(r.total)+'</span>'+cols.map(function(n){var v=atRound(r,n);return '<span'+(v!=null&&v===bestCol[n]?' class="best"':'')+'>'+(v!=null?fmt(v):'—')+'</span>'}).join('')+'</div>';
+  }).join('')+'</div>':'';
+  var id='rec-'+mapKey(map);
+  return '<details class="card rec" data-id="'+id+'"'+((ui.open.has(id)||only)?' open':'')+'><summary><span class="r-no">★'+(R.maxRound||'–')+'</span><span class="r-main"><b>'+esc(map)+'</b><small>'+runs.length+(runs.length===1?' partida salva':' partidas salvas')+(R.best?' · melhor '+fmt(R.best):'')+'</small></span><span class="chev" aria-hidden="true"></span></summary>'+
+    '<div class="r-body"><div class="rrow hd"><b></b><span>Você</span><span>Speedrunner</span><span>Diferença</span></div>'+(rows||'<p class="muted">Termine uma partida passando do round 10 para registrar tempos.</p>')+cmp+'</div></details>';
+}
+function viewRecords(){
+  var ms=recMaps();
+  var h='<div class="sec-h sub"><h3>Recordes e comparação</h3></div>';
+  if(!ms.length)return h+'<p class="muted">Quando você finalizar uma partida, aqui ficam o seu melhor round, os melhores tempos por round e a diferença para os speedrunners'+(ui.map?' deste mapa':'')+'. O recorde fica salvo mesmo se você apagar a run.</p>';
+  return h+'<div class="stack">'+ms.map(function(m){return recCard(m,ms.length===1)}).join('')+'</div>'+
+    '<p class="hint" style="margin-top:8px">Speedrunners: melhores tempos solo de round 30 e 50 no zwr.gg, consultados em 10/10/2026. “R30” é o tempo até começar o round 30. Os recordes mudam, e cada categoria tem regras próprias (chicletes, versão do jogo), então use como referência de ritmo.</p>';
+}
 function viewTempo(){
   var t=st.timer;
-  var h='<div class="sec-h"><h2>Partida</h2></div>'+(t?viewPack()+clockLive(t):(ui.startMap?viewStartMap()+viewPack()+clockStart():viewMapPick()));
+  var h=(!t&&ui.finMsg?'<div class="card fin" id="fin-msg" role="status"><b>Partida finalizada.</b><p>'+esc(ui.finMsg)+'</p><div class="btns" style="justify-content:flex-start"><button type="button" class="btn sm ghost" data-act="fin-ok">Ok</button></div></div>':'')+'<div class="sec-h"><h2>Partida</h2></div>'+(t?viewPack()+clockLive(t):(ui.startMap?viewStartMap()+viewPack()+clockStart():viewMapPick()));
   var runs=st.runs.filter(inMap);
+  h+=viewRecords();
   h+='<div class="sec-h sub"><h3>Runs salvas</h3></div>';
   if(!runs.length)return h+'<p class="muted">Nenhuma run salva'+(ui.map?' neste mapa':'')+'. Ao finalizar uma run, os tempos de cada round ficam aqui para comparar.</p>';
   return h+'<div class="stack">'+runs.map(runCard).join('')+'</div>';
@@ -747,9 +887,87 @@ function initials(s){
 }
 function tile(g){
   var u=imgs[g.id];
-  return u?'<img class="gt-img" src="'+esc(u)+'" alt="'+esc(g.name)+'">'
-    :'<span class="gt-ph" style="background:hsl('+(g.cat?CAT_HUE[g.cat]:hue(g.name))+' 36% 30%)">'+esc(initials(g.name))+'</span>';
+  return '<img class="gt-img" src="'+esc(u||gumArt(g))+'" alt="'+esc(g.name)+'">';
 }
+/* ---------- ícones originais dos chicletes (bolas de chiclete desenhadas aqui; não são as imagens do jogo) ---------- */
+var GW='fill="#fff"',GS='stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+var GLYPH={
+ bolt:'<polygon points="2,-12 -8,2 -1,2 -3,12 9,-3 1,-3" '+GW+'/>',
+ shield:'<path d="M-9 -8 L9 -8 L9 2 Q9 9 0 12 Q-9 9 -9 2Z" '+GW+'/>',
+ drop:'<path d="M0 -12 Q10 0 8 6 Q6 12 0 12 Q-6 12 -8 6 Q-10 0 0 -12Z" '+GW+'/>',
+ eye:'<path d="M-12 0 Q0 -11 12 0 Q0 11 -12 0Z" '+GS+'/><circle cx="0" cy="0" r="4" '+GW+'/>',
+ eyeshut:'<path d="M-12 -2 Q0 8 12 -2" '+GS+'/><path d="M-8 4 L-10 9 M0 7 L0 12 M8 4 L10 9" '+GS+'/>',
+ bullet:'<path d="M-4 12 L-4 -2 Q-4 -11 0 -13 Q4 -11 4 -2 L4 12Z" '+GW+'/><rect x="-5" y="9" width="10" height="3" fill="#888"/>',
+ ammo:'<path d="M-9 12 L-9 0 Q-9 -6 -6 -8 Q-3 -6 -3 0 L-3 12Z M3 12 L3 0 Q3 -6 6 -8 Q9 -6 9 0 L9 12Z" '+GW+'/>',
+ clock:'<circle cx="0" cy="0" r="11" '+GS+'/><path d="M0 -6 L0 0 L5 3" '+GS+'/>',
+ knife:'<path d="M-10 11 L8 -11 Q11 -12 11 -9 L-3 8Z" '+GW+'/><rect x="-11" y="8" width="8" height="4" rx="1" fill="#c9a" transform="rotate(-48 -7 10)"/>',
+ swirl:'<path d="M0 0 Q4 -3 4 0 Q4 6 -2 6 Q-9 6 -9 -1 Q-9 -10 0 -10 Q11 -10 11 1" '+GS+'/>',
+ bomb:'<circle cx="-1" cy="3" r="9" '+GW+'/><path d="M5 -3 L9 -8 M9 -8 L12 -11 M7 -11 L12 -6" '+GS+'/>',
+ swap:'<path d="M-10 -4 L8 -4 M3 -9 L9 -4 L3 1 M10 5 L-8 5 M-3 0 L-9 5 L-3 10" '+GS+'/>',
+ cyl:'<circle cx="0" cy="0" r="11" '+GS+'/><circle cx="0" cy="-6" r="2.4" '+GW+'/><circle cx="5.5" cy="-2" r="2.4" '+GW+'/><circle cx="3.5" cy="5" r="2.4" '+GW+'/><circle cx="-3.5" cy="5" r="2.4" '+GW+'/><circle cx="-5.5" cy="-2" r="2.4" '+GW+'/>',
+ arrowup:'<path d="M0 12 L0 -10 M-8 -2 L0 -11 L8 -2" '+GS+'/>',
+ arrowdown:'<path d="M0 -12 L0 10 M-8 2 L0 11 L8 2" '+GS+'/>',
+ star:'<polygon points="0,-13 4,-4 13,-4 6,2 9,12 0,6 -9,12 -6,2 -13,-4 -4,-4" '+GW+'/>',
+ target:'<circle cx="0" cy="0" r="11" '+GS+'/><circle cx="0" cy="0" r="5" '+GS+'/><circle cx="0" cy="0" r="1.6" '+GW+'/>',
+ flask:'<path d="M-4 -12 L4 -12 M-3 -12 L-3 -3 L-11 10 Q-12 12 -9 12 L9 12 Q12 12 11 10 L3 -3 L3 -12" '+GS+'/><path d="M-7 5 L7 5" '+GS+'/>',
+ bottle:'<rect x="-3" y="-13" width="6" height="5" '+GW+'/><path d="M-3 -8 L3 -8 L3 -5 Q9 -2 9 4 L9 10 Q9 13 6 13 L-6 13 Q-9 13 -9 10 L-9 4 Q-9 -2 -3 -5Z" '+GW+'/>',
+ fire:'<path d="M0 -13 Q3 -5 8 -1 Q12 4 8 9 Q4 13 0 13 Q-5 13 -8 9 Q-12 4 -7 -2 Q-6 2 -3 3 Q-4 -5 0 -13Z" '+GW+'/>',
+ nuke:'<circle cx="0" cy="0" r="2.6" '+GW+'/><path d="M0 -4 L-5 -12 A13 13 0 0 1 5 -12Z M3.5 2 L10 7 A13 13 0 0 1 2 12.5Z M-3.5 2 L-10 7 A13 13 0 0 0 -2 12.5Z" '+GW+'/>',
+ spark:'<path d="M0 -13 L3 -3 L13 0 L3 3 L0 13 L-3 3 L-13 0 L-3 -3Z" '+GW+'/>',
+ tag:'<path d="M-11 -2 L-2 -11 L11 -11 L11 2 L2 11Z" '+GW+'/><circle cx="5" cy="-5" r="2.4" fill="#444"/>',
+ hammer:'<rect x="-11" y="-11" width="16" height="8" rx="1.5" '+GW+'/><rect x="-2" y="-4" width="4" height="17" rx="1" '+GW+'/>',
+ cycle:'<path d="M9 -4 A10 10 0 0 0 -8 -5 M-9 4 A10 10 0 0 0 8 5" '+GS+'/><path d="M10 -10 L9 -3 L3 -5 M-10 10 L-9 3 L-3 5" '+GS+'/>',
+ boards:'<rect x="-12" y="-9" width="24" height="5" '+GW+'/><rect x="-12" y="-1" width="24" height="5" '+GW+'/><rect x="-12" y="7" width="24" height="5" '+GW+'/>',
+ grid:'<rect x="-11" y="-11" width="22" height="22" '+GS+'/><path d="M-3.6 -11 L-3.6 11 M3.6 -11 L3.6 11 M-11 -3.6 L11 -3.6 M-11 3.6 L11 3.6" '+GS+'/>',
+ gear:'<circle cx="0" cy="0" r="6" '+GS+'/><path d="M0 -13 L0 -9 M0 9 L0 13 M-13 0 L-9 0 M9 0 L13 0 M-9 -9 L-6 -6 M9 9 L6 6 M-9 9 L-6 6 M9 -9 L6 -6" '+GS+'/>',
+ paw:'<ellipse cx="0" cy="5" rx="7" ry="6" '+GW+'/><circle cx="-8" cy="-2" r="3" '+GW+'/><circle cx="-3" cy="-8" r="3" '+GW+'/><circle cx="3" cy="-8" r="3" '+GW+'/><circle cx="8" cy="-2" r="3" '+GW+'/>',
+ dice:'<rect x="-11" y="-11" width="22" height="22" rx="4" '+GS+'/><circle cx="-5" cy="-5" r="2" '+GW+'/><circle cx="5" cy="5" r="2" '+GW+'/><circle cx="0" cy="0" r="2" '+GW+'/><circle cx="5" cy="-5" r="2" '+GW+'/><circle cx="-5" cy="5" r="2" '+GW+'/>',
+ slide:'<path d="M-12 -6 L8 -6 L12 6 M-12 8 L-2 8 M-12 -6 L-12 6" '+GS+'/>',
+ burst:'<polygon points="0,-13 3,-4 12,-8 6,0 13,6 4,5 3,13 0,6 -3,13 -4,5 -13,6 -6,0 -12,-8 -3,-4" '+GW+'/>',
+ skull:'<path d="M-10 2 Q-10 -12 0 -12 Q10 -12 10 2 Q10 6 6 7 L6 12 L-6 12 L-6 7 Q-10 6 -10 2Z" '+GW+'/><circle cx="-4" cy="1" r="2.8" fill="#333"/><circle cx="4" cy="1" r="2.8" fill="#333"/>',
+ wall:'<rect x="-12" y="-10" width="24" height="20" '+GS+'/><path d="M-12 -3 L12 -3 M-12 4 L12 4 M-2 -10 L-2 -3 M6 -3 L6 4 M-6 4 L-6 10" '+GS+'/>',
+ person:'<circle cx="0" cy="-7" r="5" '+GW+'/><path d="M-9 12 Q-9 1 0 1 Q9 1 9 12Z" '+GW+'/>',
+ lights:'<circle cx="-6" cy="0" r="5" '+GW+'/><circle cx="6" cy="0" r="5" '+GW+'/><path d="M-12 -9 L-16 -11 M12 -9 L16 -11 M-12 9 L-16 11 M12 9 L16 11" '+GS+'/>',
+ box:'<path d="M-11 -6 L0 -12 L11 -6 L11 7 L0 13 L-11 7Z" '+GS+'/><path d="M-11 -6 L0 0 L11 -6 M0 0 L0 13" '+GS+'/>',
+ coin:'<circle cx="0" cy="0" r="11" '+GW+'/><text x="0" y="5.5" text-anchor="middle" font-family="Impact,Arial,sans-serif" font-size="15" fill="#555">$</text>',
+ snow:'<path d="M0 -12 L0 12 M-10.4 -6 L10.4 6 M-10.4 6 L10.4 -6" '+GS+'/>',
+ heart:'<path d="M0 11 L-10 0 Q-13 -7 -6 -9 Q-1 -9 0 -4 Q1 -9 6 -9 Q13 -7 10 0Z" '+GW+'/>',
+ crown:'<path d="M-11 9 L-12 -7 L-5 0 L0 -10 L5 0 L12 -7 L11 9Z" '+GW+'/>',
+ question:'<path d="M-6 -6 Q-6 -12 0 -12 Q7 -12 7 -6 Q7 -2 2 0 Q0 2 0 5" '+GS+'/><circle cx="0" cy="11" r="1.8" '+GW+'/>',
+ plus:'<path d="M0 -10 L0 10 M-10 0 L10 0" stroke="#fff" stroke-width="5" stroke-linecap="round"/>',
+ magnet:'<path d="M-9 12 L-9 -2 A9 9 0 0 1 9 -2 L9 12" '+GS+'/><path d="M-12 8 L-6 8 M6 8 L12 8" stroke="#ff6a6a" stroke-width="4"/>',
+ note:'<path d="M-3 9 L-3 -10 L8 -12 L8 7" '+GS+'/><circle cx="-6" cy="9" r="3.4" '+GW+'/><circle cx="5" cy="7" r="3.4" '+GW+'/><path d="M-12 -12 L12 12" stroke="#ff4a3a" stroke-width="3"/>',
+ apple:'<path d="M0 -6 Q-12 -9 -11 3 Q-9 13 0 11 Q9 13 11 3 Q12 -9 0 -6Z" '+GW+'/><path d="M0 -6 Q0 -11 4 -13" '+GS+'/>',
+ candy:'<circle cx="0" cy="0" r="7" '+GW+'/><path d="M-7 -3 L-13 -7 L-13 7 L-7 3 M7 -3 L13 -7 L13 7 L7 3" '+GW+'/>',
+ flame:'<path d="M-9 8 Q-11 -4 -2 -13 Q0 -6 5 -4 Q11 0 8 8 Q4 13 0 13 Q-6 13 -9 8Z" '+GW+'/><path d="M-12 -2 L-4 0 M12 -2 L4 0" '+GS+'/>'
+};
+var GUM_GLYPH={'always done swiftly':'bolt','arms grace':'shield','coagulant':'drop','in plain sight':'eye','stock option':'bullet','impatient':'clock','sword flay':'knife','anywhere but here':'swirl','danger closest':'bomb','armamental accomplishment':'swap','firing on all cylinders':'cyl','arsenal accelerator':'arrowup','lucky crit':'star','now you see me':'target','alchemical antithesis':'flask',
+ 'aftertaste':'bottle','burned out':'fire','dead of nuclear winter':'nuke','ephemeral enhancement':'spark','immolation liquidation':'tag','licensed contractor':'hammer','phoenix up':'flame','pop shocks':'bolt','respin cycle':'cycle','unquenchable':'bottle','idle eyes':'eyeshut','flavor hexed':'skull','board games':'grid','board to death':'boards','crawl space':'arrowdown','fatal contraption':'gear','unbearable':'paw','disorderly combat':'dice','slaughter slide':'slide','mind blown':'burst',
+ 'cache back':'ammo','kill joy':'skull','on the house':'bottle','wall power':'wall','undead man walking':'person','fear in headlights':'lights','temporal gift':'clock','crate power':'box','bullet boost':'bullet','extra credit':'coin','soda fountain':'drop',
+ 'killing time':'snow','perkaholic':'bottle','near death experience':'heart','reign drops':'crown','shopping free':'tag','head drama':'skull','secret shopper':'question','profit sharing':'coin','self medication':'plus','power vacuum':'magnet',
+ 'projectile vomiting':'drop','newtonian negation':'apple','eye candy':'candy','tone death':'note','i m feeling lucky':'dice','who s keeping score':'coin','round robbin':'cycle'};
+var GFR={classic:'#3aa0ff',mega:'#a45cff',rare:'#ff9a1a',ultra:'#ff3b30',whim:'#35c46a'};
+var GAC={};
+function gumArt(g){
+  var en=String(g.en||g.cid||g.name||''),k=vnorm(en);
+  var kk=vnorm(g.name||'');
+  var gl=GUM_GLYPH[k]||GUM_GLYPH[kk]||'';
+  var cat=g.cat||'';
+  if(!cat){var ci=-1;GUMS.forEach(function(c,i){if(ci<0&&(vnorm(c[1])===k||vnorm(c[2])===kk||vnorm(c[2])===k))ci=i});if(ci>=0){cat=GUMS[ci][0];if(!gl)gl=GUM_GLYPH[vnorm(GUMS[ci][1])]||''}}
+  var key=cat+'|'+k+'|'+kk;
+  if(GAC[key])return GAC[key];
+  var base=cat?CAT_HUE[cat]:hue(g.name||en);
+  var h=(base+(hue(k||kk)%44)-22+360)%360;
+  var fr=GFR[cat]||'hsl('+h+' 70% 55%)';
+  var body='hsl('+h+' 78% 46%)',dark='hsl('+h+' 80% 24%)',light='hsl('+h+' 90% 68%)';
+  var sym=gl?'<g transform="translate(48 50) scale(1.12)">'+GLYPH[gl]+'</g>':'<text x="48" y="58" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="26" fill="#fff">'+esc(initials(g.name||en))+'</text>';
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><defs><radialGradient id="b" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="'+light+'"/><stop offset=".45" stop-color="'+body+'"/><stop offset="1" stop-color="'+dark+'"/></radialGradient></defs>'+
+   '<rect width="96" height="96" fill="#120808"/><rect x="1.5" y="1.5" width="93" height="93" rx="9" fill="none" stroke="'+fr+'" stroke-width="3" opacity=".9"/>'+
+   '<circle cx="48" cy="50" r="35" fill="url(#b)" stroke="#0a0505" stroke-width="2"/><circle cx="48" cy="50" r="23" fill="#000" opacity=".38"/>'+sym+
+   '<ellipse cx="34" cy="29" rx="9" ry="5" fill="#fff" opacity=".5" transform="rotate(-30 34 29)"/></svg>';
+  return (GAC[key]='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg));
+}
+
 function libGum(id){return id?st.gumLib.find(function(x){return x.id===id}):null}
 function packComplete(){return st.pack.slots.every(function(s){return s.gid&&s.mark})}
 var packTm=0;
@@ -807,7 +1025,7 @@ function formCatalog(cat){
   GUMS.forEach(function(c,i){
     if(c[0]!==cur)return;
     var added=inLib(c[1]);
-    rows.push('<div class="cat-row"><span class="gt-ph cat-t" style="background:hsl('+CAT_HUE[c[0]]+' 36% 30%)" aria-hidden="true">'+esc(initials(c[2]))+'</span>'+
+    rows.push('<div class="cat-row"><img class="gt-img cat-t" src="'+esc(gumArt({name:c[2],en:c[1],cat:c[0]}))+'" alt="" aria-hidden="true">'+
       '<div class="cat-i"><b>'+esc(c[2])+'</b><small>'+esc(c[1])+'</small>'+(c[3]?'<span>'+esc(c[3])+'</span>':'')+'</div>'+
       '<button type="button" class="btn sm '+(added?'ghost':'primary')+'" data-act="cat-add" data-i="'+i+'"'+(added?' disabled':'')+'>'+(added?'Na biblioteca':'Adicionar')+'</button></div>');
   });
@@ -820,6 +1038,64 @@ function formCatalog(cat){
     '<div class="btns"><button type="button" class="btn ghost" data-act="close">Fechar</button></div>',function(){});
 }
 /* ---------- modo partida, perks e mapa ---------- */
+/* ---------- arte original dos mapas (SVG desenhado aqui, sem imagens do jogo) ---------- */
+var ARTC={};
+function artWrap(c1,c2,body){
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient><radialGradient id="v" cx=".5" cy=".5" r=".75"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".8"/></radialGradient><radialGradient id="gl"><stop offset="0" stop-color="#ffb347" stop-opacity=".9"/><stop offset="1" stop-color="#ff4d00" stop-opacity="0"/></radialGradient></defs><rect width="320" height="140" fill="url(#s)"/>'+body+'<rect width="320" height="140" fill="url(#v)"/></svg>';
+}
+var K='#080303',OR='#ff6a00',RD='#c4161c',BN='#e8d9c0';
+function art_ground(y,c){return '<rect x="0" y="'+y+'" width="320" height="'+(140-y)+'" fill="'+(c||K)+'"/>'}
+function art_moon(x,y,r,c){return '<circle cx="'+x+'" cy="'+y+'" r="'+(r*2.2)+'" fill="url(#gl)" opacity=".5"/><circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+(c||BN)+'"/>'}
+function art_win(x,y,w,h,c){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+(c||OR)+'"/>'}
+function art_bars(x,y,w,h){var s='';for(var i=0;i<=w;i+=4)s+='<line x1="'+(x+i)+'" y1="'+y+'" x2="'+(x+i)+'" y2="'+(y+h)+'" stroke="'+K+'" stroke-width="1"/>';return s}
+function art_tree(x,y,h,c){c=c||K;return '<path d="M'+x+' '+y+' L'+x+' '+(y-h)+' M'+x+' '+(y-h*.6)+' L'+(x-h*.3)+' '+(y-h*.85)+' M'+x+' '+(y-h*.45)+' L'+(x+h*.32)+' '+(y-h*.75)+' M'+x+' '+(y-h*.8)+' L'+(x+h*.18)+' '+(y-h*1.05)+'" stroke="'+c+'" stroke-width="3" fill="none" stroke-linecap="round"/>'}
+function art_stars(n,seed){var s='';for(var i=0;i<n;i++){seed=(seed*9301+49297)%233280;var x=seed/233280*320;seed=(seed*9301+49297)%233280;var y=seed/233280*80;s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(i%3?.6:1)+'" fill="'+BN+'" opacity=".7"/>'}return s}
+function art_wire(y){var p='M0 '+y;for(var x=0;x<=320;x+=10)p+=' L'+x+' '+(y+(x/10%2?-5:5));return '<path d="'+p+'" stroke="#4a3a35" stroke-width="1.2" fill="none"/>'}
+var ART_SCENES={
+kino:function(){
+  var b='';
+  b+='<path d="M0 0 L60 0 L60 140 L0 140Z" fill="#7d0c12"/><path d="M320 0 L260 0 L260 140 L320 140Z" fill="#7d0c12"/>';
+  for(var i=0;i<6;i++){b+='<path d="M'+(i*10)+' 0 Q'+(i*10+6)+' 70 '+(i*10)+' 140" stroke="#4a0509" stroke-width="3" fill="none"/><path d="M'+(320-i*10)+' 0 Q'+(314-i*10)+' 70 '+(320-i*10)+' 140" stroke="#4a0509" stroke-width="3" fill="none"/>'}
+  b+='<path d="M60 0 Q160 40 260 0 L260 14 Q160 54 60 14Z" fill="#a8101a"/>';
+  b+='<polygon points="150,0 170,0 235,120 95,120" fill="#ffd9a0" opacity=".22"/><polygon points="110,0 124,0 90,120 20,120" fill="#ffb347" opacity=".14"/><polygon points="196,0 210,0 300,120 230,120" fill="#ffb347" opacity=".14"/>';
+  b+='<rect x="95" y="52" width="130" height="26" rx="2" fill="'+K+'" stroke="'+OR+'" stroke-width="2"/>';
+  for(var j=0;j<14;j++){b+='<circle cx="'+(102+j*9)+'" cy="56" r="1.8" fill="#ffd36b"/><circle cx="'+(102+j*9)+'" cy="74" r="1.8" fill="#ffd36b"/>'}
+  b+='<text x="160" y="71" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="17" fill="'+OR+'" letter-spacing="3">KINO</text>';
+  b+='<rect x="0" y="108" width="320" height="32" fill="'+K+'"/>';
+  for(var r=0;r<2;r++)for(var c=0;c<12;c++){b+='<rect x="'+(8+c*26+r*13)+'" y="'+(108+r*14)+'" width="18" height="14" rx="5" fill="#3a0a0d"/>'}
+  b+='<rect x="0" y="6" width="320" height="8" fill="'+K+'" opacity=".85"/>';
+  for(var f=0;f<32;f++)b+='<rect x="'+(4+f*10)+'" y="8" width="5" height="4" fill="#4a3a35"/>';
+  return artWrap('#1a0305','#3a0a0d',b)},
+nacht:function(){return artWrap('#1c0a0a','#5a1a10',art_stars(20,3)+art_moon(250,28,12,'#e8c9a0')+art_ground(112)+'<path d="M70 112 L70 66 L100 44 L112 56 L124 40 L150 62 L150 112Z" fill="'+K+'"/>'+art_win(82,76,14,16,'#2a0c08')+'<path d="M82 84 L96 84 M89 76 L89 92" stroke="#7a4a2a" stroke-width="2"/>'+art_win(118,80,16,14,'#ff6a00')+'<path d="M118 87 L134 87" stroke="'+K+'" stroke-width="2"/>'+art_tree(200,112,50)+art_tree(40,112,34)+art_wire(104))},
+verruckt:function(){var w='';for(var r=0;r<3;r++)for(var c=0;c<7;c++)w+=art_win(95+c*19,48+r*20,10,13,'#ff9a30')+art_bars(95+c*19,48+r*20,10,13);var rain='';for(var i=0;i<40;i++)rain+='<line x1="'+(i*8)+'" y1="'+((i*37)%110)+'" x2="'+(i*8-6)+'" y2="'+(((i*37)%110)+14)+'" stroke="#c9a58a" stroke-width=".6" opacity=".35"/>';return artWrap('#12090c','#3d1210','<polygon points="215,0 200,45 214,45 196,100 236,36 220,36 232,0" fill="#ffd36b" opacity=".9"/>'+'<path d="M80 112 L80 40 L160 24 L240 40 L240 112Z" fill="'+K+'"/><rect x="150" y="12" width="20" height="30" fill="'+K+'"/>'+w+art_ground(112)+rain)},
+shi:function(){return artWrap('#150808','#52200e',art_moon(70,32,14,'#f0b27a')+'<ellipse cx="160" cy="118" rx="200" ry="22" fill="#1a0b08"/>'+art_tree(40,116,70)+art_tree(272,116,64)+art_tree(220,118,44)+'<rect x="128" y="76" width="64" height="24" fill="'+K+'"/><polygon points="122,76 160,56 198,76" fill="'+K+'"/>'+'<path d="M134 100 L134 120 M186 100 L186 120 M160 100 L160 120" stroke="'+K+'" stroke-width="3"/>'+art_win(150,84,12,10,OR)+'<ellipse cx="160" cy="110" rx="150" ry="9" fill="#d98a5a" opacity=".16"/><ellipse cx="90" cy="100" rx="70" ry="6" fill="#d98a5a" opacity=".13"/>')},
+riese:function(a,b){return artWrap(a||'#150806',b||'#5c1e0a','<rect x="60" y="52" width="150" height="62" fill="'+K+'"/><rect x="76" y="20" width="14" height="40" fill="'+K+'"/><rect x="104" y="30" width="12" height="30" fill="'+K+'"/><circle cx="84" cy="14" r="10" fill="#3a2a28" opacity=".7"/><circle cx="96" cy="6" r="8" fill="#3a2a28" opacity=".5"/>'+'<path d="M60 52 L135 34 L210 52Z" fill="#12080a"/>'+art_win(90,70,10,12)+art_win(120,70,10,12)+art_win(150,70,10,12)+'<ellipse cx="256" cy="98" rx="36" ry="12" fill="none" stroke="'+OR+'" stroke-width="4"/><ellipse cx="256" cy="98" rx="26" ry="8" fill="url(#gl)"/><path d="M256 90 L256 20" stroke="#ffb347" stroke-width="10" opacity=".35"/>'+'<circle cx="40" cy="96" r="14" fill="none" stroke="'+K+'" stroke-width="5" stroke-dasharray="5 4"/>'+art_ground(114))},
+ascension:function(){var l='';for(var y=30;y<112;y+=12)l+='<line x1="212" y1="'+y+'" x2="236" y2="'+(y+12)+'" stroke="'+K+'" stroke-width="2"/><line x1="236" y1="'+y+'" x2="212" y2="'+(y+12)+'" stroke="'+K+'" stroke-width="2"/>';return artWrap('#0c0608','#4a1a12',art_stars(30,7)+'<ellipse cx="170" cy="60" rx="14" ry="44" fill="'+BN+'"/><path d="M156 44 Q170 -6 184 44Z" fill="'+RD+'"/><polygon points="156,92 140,114 160,104" fill="'+RD+'"/><polygon points="184,92 200,114 180,104" fill="'+RD+'"/><circle cx="170" cy="62" r="6" fill="#1a1a2a" stroke="'+OR+'" stroke-width="2"/>'+'<rect x="210" y="26" width="28" height="88" fill="none" stroke="'+K+'" stroke-width="3"/>'+l+art_ground(112)+'<ellipse cx="170" cy="112" rx="34" ry="6" fill="'+OR+'" opacity=".5"/>')},
+cotd:function(){return artWrap('#0f0a10','#4a2220','<polygon points="0,100 50,48 90,92 130,40 180,100" fill="#8a6a66"/><polygon points="130,40 142,60 118,60" fill="#e8d9c0"/><polygon points="50,48 60,64 40,64" fill="#e8d9c0"/>'+'<rect x="238" y="46" width="18" height="60" fill="'+K+'"/><polygon points="236,46 247,32 258,46" fill="'+RD+'"/><rect x="241" y="38" width="12" height="8" fill="#ffd36b"/><polygon points="247,42 120,10 120,70" fill="#ffd36b" opacity=".2"/>'+'<path d="M40 108 L68 98 L170 98 L190 84 L196 98 L206 108Z" fill="'+K+'"/><rect x="100" y="80" width="8" height="18" fill="'+K+'"/><rect x="140" y="84" width="6" height="14" fill="'+K+'"/>'+art_ground(108,'#120a0a')+'<ellipse cx="160" cy="110" rx="170" ry="6" fill="#e8d9c0" opacity=".1"/>')},
+shangri:function(){var t='';for(var i=0;i<4;i++)t+='<polygon points="'+(160-34+i*7)+','+(98-i*20)+' '+(160+34-i*7)+','+(98-i*20)+' '+(160+24-i*7)+','+(84-i*20)+' '+(160-24+i*7)+','+(84-i*20)+'" fill="'+K+'"/>';return artWrap('#2a0a06','#8a2a0a','<circle cx="160" cy="62" r="46" fill="'+OR+'" opacity=".85"/><circle cx="160" cy="62" r="30" fill="#ffb347" opacity=".8"/>'+t+'<rect x="150" y="12" width="20" height="14" fill="'+K+'"/>'+art_ground(100)+'<ellipse cx="30" cy="104" rx="50" ry="22" fill="#0e0605"/><ellipse cx="292" cy="104" rx="50" ry="24" fill="#0e0605"/><path d="M130 100 L190 100 L200 140 L120 140Z" fill="#1a0a08"/>')},
+moon:function(){return artWrap('#05030a','#140808',art_stars(60,11)+'<circle cx="232" cy="36" r="26" fill="#2a5a8a"/><path d="M214 26 Q232 18 244 34 Q226 38 214 26Z" fill="#5a9a5a" opacity=".8"/><circle cx="232" cy="36" r="30" fill="#4a90c0" opacity=".14"/>'+'<ellipse cx="160" cy="130" rx="220" ry="34" fill="#2a1a18"/><ellipse cx="60" cy="112" rx="26" ry="6" fill="#120808"/><ellipse cx="250" cy="120" rx="30" ry="7" fill="#120808"/>'+'<path d="M110 112 A34 34 0 0 1 178 112Z" fill="#12080a" stroke="'+OR+'" stroke-width="2"/><path d="M144 78 L144 60 M138 60 L150 60" stroke="'+BN+'" stroke-width="2"/>'+art_win(138,94,12,18,'#ffb347'))},
+nuketown:function(){return artWrap('#2a0a06','#a83a0a','<ellipse cx="160" cy="62" rx="38" ry="22" fill="#ffb347" opacity=".9"/><ellipse cx="160" cy="54" rx="26" ry="16" fill="#ff6a00"/><path d="M148 72 Q160 100 152 114 L168 114 Q160 100 172 72Z" fill="#d94a0a"/><ellipse cx="160" cy="112" rx="40" ry="8" fill="#ff8a30" opacity=".6"/>'+'<rect x="22" y="76" width="64" height="38" fill="'+K+'"/><polygon points="16,76 54,50 92,76" fill="#12080a"/>'+art_win(34,88,12,12)+art_win(60,88,12,12)+'<rect x="238" y="80" width="62" height="34" fill="'+K+'"/><polygon points="232,80 269,56 306,80" fill="#12080a"/>'+art_win(250,90,12,12)+art_win(276,90,12,12)+art_ground(114)+'<path d="M96 110 L96 100 M104 110 L104 100 M112 110 L112 100 M120 110 L120 100" stroke="#3a2a28" stroke-width="2"/>')},
+dierise:function(){return artWrap('#1a0a10','#9a3412','<circle cx="260" cy="40" r="20" fill="#ffb347" opacity=".8"/>'+'<polygon points="90,140 100,10 124,14 118,140" fill="'+K+'"/><polygon points="130,140 134,0 160,2 150,140" fill="#12080a"/><polygon points="190,140 176,28 204,22 214,140" fill="'+K+'"/>'+'<polygon points="60,140 70,70 90,74 84,140" fill="#12080a"/>'+(function(){var s='';for(var y=18;y<120;y+=14){s+=art_win(106,y,4,6,'#ff9a30')+art_win(140,y+4,4,6,'#ff9a30')+art_win(186,y+2,4,6,'#ff9a30')}return s})()+'<rect x="220" y="74" width="26" height="6" fill="'+K+'" transform="rotate(-18 233 77)"/><rect x="20" y="52" width="18" height="5" fill="'+K+'" transform="rotate(14 29 54)"/>'+art_ground(122))},
+mob:function(){return artWrap('#0c0810','#3a1a1a','<polygon points="160,26 70,120 90,120" fill="#fff2c0" opacity=".16"/>'+'<ellipse cx="160" cy="118" rx="140" ry="14" fill="'+K+'"/><rect x="100" y="76" width="96" height="40" fill="'+K+'"/>'+(function(){var s='';for(var c=0;c<8;c++)s+=art_win(108+c*11,86,6,10,'#3a2a20');return s})()+'<rect x="204" y="48" width="12" height="68" fill="'+K+'"/><rect x="198" y="40" width="24" height="12" fill="'+K+'"/><circle cx="210" cy="46" r="4" fill="#fff2c0"/><rect x="90" y="56" width="10" height="60" fill="'+K+'"/><rect x="85" y="50" width="20" height="8" fill="'+K+'"/>'+'<path d="M0 124 Q40 118 80 124 T160 124 T240 124 T320 124" stroke="#7a4a40" stroke-width="2" fill="none"/>'+'<path d="M0 132 Q40 126 80 132 T160 132 T240 132 T320 132" stroke="#5a3430" stroke-width="2" fill="none"/>'+'<path d="M250 100 L320 70 M250 70 L320 100" stroke="#7a1a18" stroke-width="3"/>')},
+buried:function(){var s='';for(var i=0;i<10;i++)s+='<polygon points="'+(i*34)+',0 '+(i*34+14)+',0 '+(i*34+7)+','+(14+(i%3)*10)+'" fill="'+K+'"/>';return artWrap('#120806','#4a2410',s+'<rect x="90" y="56" width="140" height="58" fill="#1a0c08"/><polygon points="84,56 160,36 236,56" fill="'+K+'"/><rect x="132" y="66" width="56" height="12" fill="#3a1a10"/><text x="160" y="76" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="'+OR+'">SALOON</text>'+art_win(100,84,16,18,'#ff9a30')+art_win(204,84,16,18,'#ff9a30')+'<rect x="148" y="88" width="24" height="26" fill="'+K+'"/>'+'<circle cx="80" cy="76" r="5" fill="#ffb347"/><circle cx="240" cy="76" r="5" fill="#ffb347"/><circle cx="80" cy="76" r="14" fill="url(#gl)" opacity=".6"/><circle cx="240" cy="76" r="14" fill="url(#gl)" opacity=".6"/>'+art_ground(114,'#0e0604'))},
+origins:function(){return artWrap('#0e0608','#5a1a10','<polygon points="150,0 138,40 154,40 140,80" stroke="#ffd36b" stroke-width="3" fill="none"/>'+'<polygon points="106,140 112,50 140,50 146,140 130,140 128,70 122,70 120,140" fill="'+K+'"/><polygon points="174,140 180,50 208,50 214,140 198,140 196,70 190,70 188,140" fill="'+K+'"/><rect x="104" y="36" width="112" height="22" fill="#12080a"/><circle cx="160" cy="47" r="7" fill="'+OR+'"/>'+art_ground(116)+'<path d="M0 118 L20 112 L40 118 L60 112 L80 118" stroke="#3a2a28" stroke-width="3" fill="none"/><path d="M240 118 L260 112 L280 118 L300 112 L320 118" stroke="#3a2a28" stroke-width="3" fill="none"/><path d="M40 112 L40 92 M32 98 L48 98 M280 112 L280 94 M272 100 L288 100" stroke="#6a4a40" stroke-width="3"/>')},
+tranzit:function(){return artWrap('#150a0c','#6a2a12','<polygon points="130,140 190,140 176,86 144,86" fill="#14090a"/><path d="M160 138 L160 126 M160 116 L160 108 M160 100 L160 94" stroke="'+OR+'" stroke-width="3"/>'+'<rect x="204" y="68" width="76" height="30" rx="3" fill="'+K+'"/><rect x="210" y="74" width="12" height="9" fill="#ff9a30"/><rect x="226" y="74" width="12" height="9" fill="#ff9a30"/><rect x="242" y="74" width="12" height="9" fill="#ff9a30"/><rect x="258" y="74" width="14" height="9" fill="#ff9a30"/><circle cx="222" cy="100" r="6" fill="#2a1a18"/><circle cx="262" cy="100" r="6" fill="#2a1a18"/>'+'<rect x="40" y="40" width="3" height="70" fill="'+K+'"/><rect x="30" y="46" width="24" height="3" fill="'+K+'"/><path d="M0 52 Q40 66 80 50" stroke="'+K+'" stroke-width="1.5" fill="none"/>'+'<ellipse cx="160" cy="90" rx="200" ry="10" fill="#d98a5a" opacity=".13"/>'+'<path d="M0 86 L130 86 M190 86 L320 86" stroke="#14090a" stroke-width="2"/>'+'<rect x="0" y="86" width="320" height="54" fill="#0b0504" opacity=".55"/>')},
+shadows:function(){var t='';[[70,70,26],[96,50,22],[122,60,24],[198,56,26],[226,44,22],[250,64,24]].forEach(function(b){t+='<polygon points="'+b[0]+',120 '+b[0]+','+b[1]+' '+(b[0]+b[2]/2)+','+(b[1]-12)+' '+(b[0]+b[2])+','+b[1]+' '+(b[0]+b[2])+',120" fill="'+K+'"/>'});return artWrap('#16050e','#7a1220',t+'<ellipse cx="160" cy="44" rx="30" ry="16" fill="#12040a" stroke="'+RD+'" stroke-width="3"/><circle cx="160" cy="44" r="9" fill="'+OR+'"/><ellipse cx="160" cy="44" rx="3" ry="9" fill="'+K+'"/><path d="M130 52 Q110 76 124 96 M190 52 Q210 76 196 96 M160 60 Q150 90 160 108" stroke="'+RD+'" stroke-width="4" fill="none" stroke-linecap="round"/>'+'<line x1="60" y1="118" x2="260" y2="118" stroke="'+OR+'" stroke-width="2" opacity=".8"/>'+art_ground(120))},
+giant:function(){return ART_SCENES.riese('#0f0a0a','#7a2a10')},
+eisen:function(){return artWrap('#0c0810','#4a1a22',art_moon(222,36,18,'#e8c9b0')+'<path d="M232 36 Q246 10 270 18 Q250 24 246 40 Q268 36 290 50 Q262 48 244 56 Q236 70 224 68 Q232 54 232 36Z" fill="'+K+'"/>'+'<polygon points="0,140 60,96 120,110 180,70 260,100 320,84 320,140" fill="#12080a"/>'+'<rect x="80" y="54" width="70" height="46" fill="'+K+'"/><rect x="72" y="36" width="16" height="64" fill="'+K+'"/><rect x="140" y="30" width="16" height="70" fill="'+K+'"/><polygon points="70,36 80,20 90,36" fill="'+K+'"/><polygon points="138,30 148,12 158,30" fill="'+K+'"/>'+art_win(104,68,8,12)+art_win(120,68,8,12)+'<polygon points="60,70 0,20 80,56" fill="'+OR+'" opacity=".0"/>'+'<polygon points="110,0 100,22 112,22 104,44" fill="#8ad0ff" opacity=".8"/>'+art_ground(116))},
+zetsubou:function(){return artWrap('#12060a','#6a1a1a','<circle cx="60" cy="34" r="16" fill="#ffb347" opacity=".75"/>'+'<ellipse cx="160" cy="116" rx="130" ry="22" fill="'+K+'"/><path d="M190 108 Q204 70 196 40" stroke="'+K+'" stroke-width="5" fill="none"/><path d="M196 40 Q178 40 168 52 M196 40 Q214 36 226 50 M196 40 Q196 22 210 18 M196 40 Q180 28 170 30" stroke="'+K+'" stroke-width="4" fill="none" stroke-linecap="round"/>'+'<path d="M110 108 Q96 70 106 48" stroke="'+K+'" stroke-width="5" fill="none"/><path d="M106 48 Q88 48 78 60 M106 48 Q124 44 134 58 M106 48 Q106 30 120 26" stroke="'+K+'" stroke-width="4" fill="none" stroke-linecap="round"/>'+'<path d="M140 108 A20 20 0 0 1 180 108Z" fill="#14090a" stroke="'+OR+'" stroke-width="2"/>'+'<path d="M240 140 Q250 100 232 80 Q252 96 262 140Z" fill="'+RD+'" opacity=".85"/><path d="M0 128 Q40 122 80 128 T160 128 T240 128 T320 128" stroke="#5a2a28" stroke-width="2" fill="none"/>')},
+gorod:function(){var b='';[[20,30,60],[56,50,46],[92,22,40],[196,44,52],[232,26,46],[266,52,40]].forEach(function(r){b+='<polygon points="'+r[0]+',120 '+r[0]+','+(120-r[1]*1.6)+' '+(r[0]+r[2]*.4)+','+(120-r[1]*1.4)+' '+(r[0]+r[2]*.6)+','+(120-r[1]*1.7)+' '+(r[0]+r[2])+','+(120-r[1]*1.3)+' '+(r[0]+r[2])+',120" fill="'+K+'"/>'});return artWrap('#1a0606','#7a1a12',b+'<polygon points="160,26 166,44 186,44 170,55 176,74 160,62 144,74 150,55 134,44 154,44" fill="'+RD+'"/><path d="M110 70 Q130 40 160 50 Q190 40 210 70 Q190 62 160 70 Q130 62 110 70Z" fill="'+K+'" opacity=".92"/>'+'<circle cx="60" cy="38" r="12" fill="#3a2a28" opacity=".7"/><circle cx="270" cy="28" r="14" fill="#3a2a28" opacity=".7"/>'+art_ground(120))},
+revel:function(){var p='';for(var i=0;i<5;i++){var a=-Math.PI/2+i*4*Math.PI/5;p+=(i?' L':'M')+(160+34*Math.cos(a)).toFixed(1)+' '+(70+34*Math.sin(a)).toFixed(1)}p+='Z';var f='';for(var j=0;j<9;j++)f+='<rect x="'+(18+j*34)+'" y="102" width="7" height="16" fill="'+K+'"/><circle cx="'+(21.5+j*34)+'" cy="99" r="4" fill="'+K+'"/>';return artWrap('#12040a','#6a1218','<circle cx="160" cy="70" r="52" fill="none" stroke="'+OR+'" stroke-width="3"/><circle cx="160" cy="70" r="44" fill="url(#gl)" opacity=".55"/><circle cx="160" cy="70" r="38" fill="none" stroke="'+RD+'" stroke-width="2"/><path d="'+p+'" stroke="'+BN+'" stroke-width="2" fill="none"/>'+art_ground(112)+f)},
+generic:function(){return artWrap('#150606','#5a1810','<circle cx="160" cy="68" r="34" fill="none" stroke="'+OR+'" stroke-width="3"/><circle cx="160" cy="68" r="18" fill="none" stroke="'+RD+'" stroke-width="2"/><path d="M160 22 L160 114 M114 68 L206 68" stroke="'+OR+'" stroke-width="2"/><circle cx="160" cy="68" r="3" fill="'+OR+'"/>'+'<path d="M40 120 Q60 100 80 118 Q90 108 104 120Z" fill="'+RD+'" opacity=".7"/>'+art_ground(118))}
+};
+var ART_MAP={'nacht der untoten':'nacht','verruckt':'verruckt','shi no numa':'shi','der riese':'riese','kino der toten':'kino','ascension':'ascension','call of the dead':'cotd','shangri la':'shangri','moon':'moon','nuketown zombies':'nuketown','nuketown':'nuketown','die rise':'dierise','mob of the dead':'mob','buried':'buried','origins':'origins','tranzit':'tranzit','shadows of evil':'shadows','the giant':'giant','der eisendrache':'eisen','zetsubou no shima':'zetsubou','gorod krovi':'gorod','revelations':'revel'};
+function mapArt(name){
+  var k=vnorm(name);
+  if(ARTC[k])return ARTC[k];
+  var sc=ART_SCENES[ART_MAP[k]]||ART_SCENES.generic;
+  return (ARTC[k]='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(sc()));
+}
+
 function mapKey(n){
   var h=0;n=String(n).toLowerCase().trim();
   for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;
@@ -859,19 +1135,47 @@ function pinListHtml(name){
   return m.pins.map(function(p,i){return '<li><b>'+(i+1)+'</b><span>'+esc(p.t)+'</span><button type="button" class="link" data-act="pin-del" data-i="'+i+'">remover</button></li>'}).join('');
 }
 function mapThumb(name){
-  var u=imgs[mapKey(name)];
-  if(!u)return '<button type="button" class="btn ghost" data-act="map-open" data-n="'+esc(name)+'">Adicionar mapa de '+esc(name)+'</button>';
-  return '<button type="button" class="mapthumb" data-act="map-open" data-n="'+esc(name)+'" aria-label="Abrir mapa de '+esc(name)+'"><img src="'+esc(u)+'" alt="" draggable="false"><span class="pinlayer">'+pinsHtml(name).replace(/class="pin"/g,'class="pin sm"')+'</span><span class="mt-l">Mapa · toque para ampliar</span></button>';
+  var u=imgs[mapKey(name)],np=st.maps[name]?st.maps[name].pins.length:0;
+  return '<button type="button" class="mapthumb art" data-act="map-open" data-n="'+esc(name)+'" aria-label="'+(u?'Abrir mapa de ':'Adicionar imagem do mapa de ')+esc(name)+'"><img src="'+esc(mapArt(name))+'" alt="" draggable="false"><span class="mt-l">'+esc(name)+(u?' · mapa'+(np?' · '+np+(np===1?' marcador':' marcadores'):'')+' · toque para abrir':' · toque para adicionar o mapa')+'</span></button>';
 }
 function pkKey(n){
   var h=0;n=String(n).toLowerCase().trim();
   for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;
   return 'pk_'+h.toString(36);
 }
+/* ---------- ícones originais dos perks (garrafas desenhadas aqui; não são as imagens do jogo) ---------- */
+var PKC={};
+var PERK_ART=[
+ ['revive','#2f8cff','<path d="M0 -9 L0 9 M-9 0 L9 0" stroke="#fff" stroke-width="5" stroke-linecap="round"/>'],
+ ['jugger','#d91e24','<path d="M-9 -8 L9 -8 L9 2 Q9 9 0 12 Q-9 9 -9 2Z" fill="#fff"/><path d="M0 -4 L0 8" stroke="#d91e24" stroke-width="3"/>'],
+ ['speed','#33c25a','<polygon points="2,-12 -8,2 -1,2 -3,12 9,-3 1,-3" fill="#fff"/>'],
+ ['double','#ff9a1a','<rect x="-9" y="-10" width="6" height="18" rx="3" fill="#fff"/><rect x="3" y="-10" width="6" height="18" rx="3" fill="#fff"/><rect x="-9" y="6" width="6" height="4" fill="#8a4a00"/><rect x="3" y="6" width="6" height="4" fill="#8a4a00"/>'],
+ ['stamin','#f2d21a','<path d="M-9 -8 L0 0 L-9 8 M0 -8 L9 0 L0 8" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'],
+ ['mule','#9a6a3a','<path d="M-9 10 L-9 -2 A9 9 0 0 1 9 -2 L9 10" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="-9" cy="8" r="1.6" fill="#fff"/><circle cx="9" cy="8" r="1.6" fill="#fff"/>'],
+ ['widow','#8a2be2','<ellipse cx="0" cy="1" rx="5" ry="6" fill="#fff"/><path d="M-5 -2 L-12 -8 M-5 2 L-12 8 M5 -2 L12 -8 M5 2 L12 8 M-5 0 L-13 0 M5 0 L13 0" stroke="#fff" stroke-width="2" stroke-linecap="round"/>'],
+ ['cherry','#19b5d9','<circle cx="-5" cy="5" r="5" fill="#fff"/><circle cx="6" cy="6" r="5" fill="#fff"/><path d="M-5 0 Q0 -10 4 -11 M6 1 Q5 -6 4 -11" stroke="#fff" stroke-width="2" fill="none"/><polygon points="9,-13 5,-8 8,-8 6,-3 12,-9 9,-9" fill="#ffe14a"/>'],
+ ['dead','#ee5a1c','<circle cx="0" cy="0" r="9" stroke="#fff" stroke-width="3" fill="none"/><path d="M0 -14 L0 14 M-14 0 L14 0" stroke="#fff" stroke-width="2.4"/><circle cx="0" cy="0" r="2" fill="#fff"/>'],
+ ['phd','#d4349a','<polygon points="0,-13 3,-4 12,-8 6,0 13,6 4,5 3,13 0,6 -3,13 -4,5 -13,6 -6,0 -12,-8 -3,-4" fill="#fff"/>']
+];
+function perkArt(name){
+  var k=vnorm(name);
+  if(PKC[k])return PKC[k];
+  var hit=null;
+  PERK_ART.forEach(function(p){if(!hit&&k.replace(/ /g,'').indexOf(p[0])>=0)hit=p});
+  var col=hit?hit[1]:('hsl('+hue(name)+' 60% 45%)');
+  var sym=hit?hit[2]:'<text x="0" y="6" text-anchor="middle" font-family="Impact,Arial Narrow,sans-serif" font-size="18" fill="#fff">'+esc(initials(name))+'</text>';
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><defs><radialGradient id="g" cx=".5" cy=".55" r=".6"><stop offset="0" stop-color="'+col+'" stop-opacity=".55"/><stop offset="1" stop-color="#0a0505" stop-opacity="0"/></radialGradient><linearGradient id="l" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".35" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#000" stop-opacity=".4"/></linearGradient></defs>'+
+   '<rect width="96" height="96" fill="#120808"/><rect width="96" height="96" fill="url(#g)"/>'+
+   '<rect x="40" y="9" width="16" height="7" rx="2" fill="#c9b79c"/><path d="M41 16 L55 16 L55 27 Q66 31 66 44 L66 80 Q66 87 59 87 L37 87 Q30 87 30 80 L30 44 Q30 31 41 27Z" fill="'+col+'" stroke="#0a0505" stroke-width="2"/>'+
+   '<path d="M41 16 L55 16 L55 27 Q66 31 66 44 L66 80 Q66 87 59 87 L37 87 Q30 87 30 80 L30 44 Q30 31 41 27Z" fill="url(#l)"/>'+
+   '<rect x="30" y="46" width="36" height="28" fill="#0a0505" opacity=".78"/><g transform="translate(48 60) scale(.9)">'+sym+'</g>'+
+   '<ellipse cx="38" cy="38" rx="2.4" ry="7" fill="#fff" opacity=".35"/></svg>';
+  return (PKC[k]='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg));
+}
+
 function perkTile(n){
   var u=imgs[pkKey(n)];
-  return u?'<img class="gt-img" src="'+esc(u)+'" alt="'+esc(n)+'">'
-    :'<span class="gt-ph" style="background:hsl('+hue(n)+' 36% 30%)">'+esc(initials(n))+'</span>';
+  return '<img class="gt-img" src="'+esc(u||perkArt(n))+'" alt="'+esc(n)+'">';
 }
 function perkChips(){
   var P=st.perks;
@@ -902,7 +1206,7 @@ function viewMapPick(){
   var tiles=names.map(function(n){
     var u=imgs[mapKey(n)],c=stratsFor(n).length;
     return '<button type="button" class="lib-t map-t" data-act="start-pick" data-n="'+esc(n)+'">'+
-      (u?'<img class="gt-img" src="'+esc(u)+'" alt="">':'<span class="gt-ph" style="background:hsl('+hue(n)+' 36% 30%)">'+esc(initials(n))+'</span>')+
+      '<img class="gt-img" src="'+esc(mapArt(n))+'" alt="">'+
       '<span class="ln"><b>'+esc(n)+'</b>'+(c?'<br>'+c+(c===1?' estratégia':' estratégias'):'')+'</span></button>';
   }).join('');
   return '<div class="card"><h3 style="margin:0 0 4px">Escolha o mapa</h3><p class="muted">Toque no mapa da partida. Na próxima tela você vê as estratégias dele, monta o pack e inicia o round.</p>'+
@@ -922,7 +1226,7 @@ function viewStartMap(){
     :'<div class="card"><p class="muted">Nenhuma estratégia para este mapa ainda.</p><div class="btns" style="justify-content:flex-start"><button type="button" class="btn ghost" data-act="new-est">Criar estratégia</button></div></div>';
   return '<div class="card"><div class="pk-h"><h3 style="margin:0">Mapa da partida</h3><button type="button" class="btn sm ghost" data-act="start-back">Trocar mapa</button></div>'+
     '<label for="t-map-sel" style="margin-top:10px">Mapa<select id="t-map-sel">'+names.map(function(n){return '<option value="'+esc(n)+'"'+(n.toLowerCase()===m.toLowerCase()?' selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></label>'+
-    '<button type="button" class="mapthumb" style="margin-top:10px" data-act="map-open" data-n="'+esc(m)+'" aria-label="Abrir mapa de '+esc(m)+'">'+(u?'<img src="'+esc(u)+'" alt="" draggable="false"><span class="mt-l">Mapa · toque para ampliar</span>':'<span class="mt-l" style="position:static;display:inline-block;margin:12px">Adicionar imagem do mapa</span>')+'</button></div>'+
+    '<button type="button" class="mapthumb art" style="margin-top:10px" data-act="map-open" data-n="'+esc(m)+'" aria-label="Abrir mapa de '+esc(m)+'">'+'<img src="'+esc(mapArt(m))+'" alt="" draggable="false"><span class="mt-l">'+(u?'Toque para abrir o mapa com marcadores':'Toque para adicionar o mapa com marcadores')+'</span>'+'</button></div>'+
     '<div class="sec-h sub"><h3>Estratégias de '+esc(m)+'</h3></div>'+strat;
 }
 function mapNames(){
@@ -938,8 +1242,8 @@ function mapTiles(){
   return mapChoices().map(function(n){
     var u=imgs[mapKey(n)];
     return '<button type="button" class="lib-t map-t" data-act="map-open" data-n="'+esc(n)+'">'+
-      (u?'<img class="gt-img" src="'+esc(u)+'" alt="">':'<span class="gt-ph" style="background:var(--surface-2);color:var(--muted);font-size:12px;text-align:center">Sem imagem</span>')+
-      '<span class="ln">'+esc(n)+(n===cur?' · atual':'')+'</span></button>';
+      '<img class="gt-img" src="'+esc(mapArt(n))+'" alt="">'+
+      '<span class="ln">'+esc(n)+(u?' · mapa salvo':'')+(n===cur?' · atual':'')+'</span></button>';
   }).join('');
 }
 function popHtml(k){
@@ -1548,7 +1852,7 @@ function act(el){
       if(nAdd){touch();render()}
       formCatalog();
       break;
-    case 't-start':
+    case 't-start':ui.finMsg='';
       var map=(ui.startMap||'').trim();
       if(!map){ui.startMap='';render();break}
       st.timer={map:map,round:1,splits:[],roundStart:Date.now(),pausedAt:null};
@@ -1573,9 +1877,16 @@ function act(el){
       if(!t)break;
       t.splits.push(roundMs(t));
       st.runs.unshift({id:uid(),map:t.map,date:new Date().toISOString(),round:t.round,splits:t.splits.slice(),total:t.splits.reduce(function(p,q){return p+q},0),note:''});
+      if(!st.records)st.records={};
+      recInto(st.records,st.runs[0]);
       st.timer=null;ui.armed='';ui.startMap='';
-      if(ui.map&&ui.map!==st.runs[0].map)ui.map=st.runs[0].map;
-      touch();render();break;
+      ui.map=st.runs[0].map;ui.tab='tempo';ui.hud=false;
+      ui.finMsg='Partida salva: '+st.runs[0].map+', round '+st.runs[0].round+', tempo '+fmt(st.runs[0].total)+'. Veja abaixo os recordes e a comparação.';
+      touch();render();
+      try{toast('Partida finalizada e salva')}catch(e){}
+      setTimeout(function(){try{var e=document.getElementById('fin-msg');if(e&&e.scrollIntoView)e.scrollIntoView({block:'start'})}catch(x){}},60);
+      break;
+    case 'fin-ok':ui.finMsg='';render();break;
     case 't-discard':
       if(ui.armed==='discard'){st.timer=null;ui.armed='';ui.startMap='';touch();render()}
       else{ui.armed='discard';render();clearTimeout(armTm);armTm=setTimeout(function(){ui.armed='';render()},3500)}
