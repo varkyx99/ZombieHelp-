@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0606">
+<title>Jarvis · Caderno de Rounds</title>
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#0a0606;--surface:#150c0c;--fg:#f1e7dc;--muted:#b39c8d;--line:#40201b;--accent:#ff6a00;--red:#c4161c;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:radial-gradient(130% 55% at 50% -8%,#4a0c09 0%,rgba(74,12,9,0) 62%),var(--bg);background-attachment:fixed;color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:3px solid var(--red)}
+h1{margin:0;font:400 24px/1 Impact,"Arial Narrow",sans-serif;letter-spacing:.06em;color:var(--accent);text-transform:uppercase}
+a,button{color:inherit;font:inherit}
+.top a{color:var(--accent);text-decoration:underline}
+#log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:#2a0f0d}
+.msg.ai{align-self:flex-start;border-left:3px solid var(--accent)}
+.msg small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+#st{padding:0 16px 6px;color:var(--muted);font-size:13px;min-height:20px}
+.dock{padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:rgba(14,6,6,.96);display:grid;gap:10px}
+#mic{height:76px;border-radius:38px;border:2px solid var(--accent);background:linear-gradient(180deg,#ff7a14,#d4380a);color:#1a0603;font:700 18px system-ui;box-shadow:0 0 18px rgba(255,90,0,.35)}
+#mic.on{background:linear-gradient(180deg,#e0232b,#8a0f14);color:#fff;border-color:#ff5a4a;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 30px rgba(255,40,30,.8)}}
+.row{display:flex;gap:8px}
+input{flex:1;min-width:0;height:44px;border-radius:8px;border:1px solid #5a2a22;background:#1a0d0d;color:var(--fg);padding:0 12px}
+.btn{height:44px;padding:0 16px;border-radius:8px;border:1px solid #5a2a22;background:#1d1010}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chip{flex:none;padding:6px 12px;border-radius:16px;border:1px solid #5a2a22;background:#1d1010;font-size:13px}
+#set{display:grid;gap:8px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+#set p{margin:0;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header class="top"><h1>Jarvis</h1><span><button class="btn" id="gear" aria-label="Configurar IA">⚙</button> <a href="index.html">Caderno</a></span></header>
+<div id="log" aria-live="polite"></div>
+<div id="st" role="status"></div>
+<div class="dock">
+  <div id="set" hidden>
+    <p>Para perguntas livres (fora dos seus rounds) cole aqui o endereço do seu Worker (Cloudflare). Sem isso, o Jarvis responde só sobre o seu caderno.</p>
+    <input id="worker" placeholder="https://jarvis.seunome.workers.dev" autocomplete="off" inputmode="url">
+    <div class="row"><button class="btn" id="saveset">Salvar</button><button class="btn" id="voiceoff">Voz de resposta: ligada</button></div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <button id="mic" type="button">🎙 Toque para falar</button>
+  <form class="row" id="f"><input id="q" placeholder="Ou digite aqui" autocomplete="off"><button class="btn" type="submit">Enviar</button></form>
+</div>
+<script>
+(function(){
+'use strict';
+var LS='caderno-rounds-v1';
+var KNOWN=['Nacht der Untoten','Verrückt','Shi No Numa','Der Riese','Kino der Toten','Ascension','Call of the Dead','Shangri-La','Moon','Nuketown Zombies','Die Rise','Mob of the Dead','Buried','Origins','TranZit','Shadows of Evil','The Giant','Der Eisendrache','Zetsubou No Shima','Gorod Krovi','Revelations'];
+var WR={'Nacht der Untoten':['37:40','oJumpy','1:34:57','oJumpy'],'Verrückt':['29:08','Zombie Dawg','55:42','FadedZ'],'Shi No Numa':['29:48','oJumpy','1:00:21','oJumpy'],'Der Riese':['27:31','Mystic','57:40','Mystic'],'Kino der Toten':['28:02','Zombie Dawg','52:59','Zombie Dawg'],'Ascension':['27:38','Zombie Dawg','52:08','Zombie Dawg'],'Call of the Dead':['33:48','Mystic','1:21:57','Prompt'],'Shangri-La':['30:54','GannonSnipes','1:03:44','GannonSnipes'],'Moon':['27:08','GannonSnipes','47:01','GannonSnipes'],'Nuketown Zombies':['35:11','SecondaryColors','1:37:43','Huth'],'Die Rise':['25:39','SecondaryColors','49:22','issue'],'Mob of the Dead':['30:32','Ju Frouge','1:10:23','Chris Voltage'],'Buried':['28:11','Vexxo','1:03:06','Curve'],'Origins':['30:20','oJumpy','1:01:19','oJumpy'],'TranZit':['31:18','White_Sz','1:07:31','White_Sz'],'Shadows of Evil':['27:55','FadedZ','53:09','FadedZ'],'The Giant':['27:28','FadedZ','51:37','FadedZ'],'Der Eisendrache':['28:54','oJumpy','56:13','Mangos'],'Zetsubou No Shima':['27:46','GannonSnipes','1:01:24','oJumpy'],'Gorod Krovi':['30:19','oJumpy','1:05:13','oJumpy'],'Revelations':['28:44','Lucifire','55:26','oJumpy']};
+var $=function(s){return document.querySelector(s)};
+function vnorm(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
+function load(){try{var d=JSON.parse(localStorage.getItem(LS)||'null');return d&&typeof d==='object'?d:null}catch(e){return null}}
+function arr(x){return Array.isArray(x)?x:[]}
+function cfg(){try{return JSON.parse(localStorage.getItem('jarvis-cfg')||'{}')||{}}catch(e){return {}}}
+function setCfg(c){try{localStorage.setItem('jarvis-cfg',JSON.stringify(c))}catch(e){}}
+/* ---- números por extenso ---- */
+var UN={zero:0,um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,catorze:14,quatorze:14,quinze:15,dezesseis:16,dezessete:17,dezoito:18,dezenove:19};
+var DZ={vinte:20,trinta:30,quarenta:40,cinquenta:50,sessenta:60,setenta:70,oitenta:80,noventa:90};
+var CT={cem:100,cento:100,duzentos:200,trezentos:300,quatrocentos:400,quinhentos:500,seiscentos:600,setecentos:700,oitocentos:800,novecentos:900};
+function numAfter(q,words){
+  var toks=q.split(' ');
+  for(var i=0;i<toks.length;i++){
+    if(words.indexOf(toks[i])<0)continue;
+    var total=0,got=false;
+    for(var j=i+1;j<toks.length;j++){
+      var w=toks[j],v;
+      if(/^\d+$/.test(w)){if(!got)return parseInt(w,10);break}
+      if(w==='e'&&got)continue;
+      v=UN[w]!==undefined?UN[w]:DZ[w]!==undefined?DZ[w]:CT[w]!==undefined?CT[w]:undefined;
+      if(v===undefined){if(got)break;if({o:1,a:1,de:1,do:1,da:1,numero:1,no:1,na:1}[w])continue;break}
+      total+=v;got=true;
+    }
+    if(got)return total;
+  }
+  var m=q.match(/\b(\d{1,3})\b/);return m?parseInt(m[1],10):null;
+}
+/* ---- tempo ---- */
+function parseT(x){var ms=0;String(x).split(':').forEach(function(p){ms=ms*60+(+p||0)});return ms*1000}
+function clock(ms){var s=Math.round(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;var p=function(n){return String(n).padStart(2,'0')};return h?h+':'+p(m)+':'+p(x):m+':'+p(x)}
+function say_t(ms){
+  var s=Math.round(Math.abs(ms)/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60,o=[];
+  if(h)o.push(h+(h===1?' hora':' horas'));
+  if(m)o.push(m+(m===1?' minuto':' minutos'));
+  if(x||!o.length)o.push(x+(x===1?' segundo':' segundos'));
+  return o.length>1?o.slice(0,-1).join(', ')+' e '+o[o.length-1]:o[0];
+}
+function atRound(run,n){
+  var sp=arr(run.splits);
+  if(!(run.round>=n)||sp.length<n-1)return null;
+  var t=0;for(var i=0;i<n-1;i++){var v=+sp[i];if(!(v>=0))return null;t+=v}
+  return t;
+}
+/* ---- mapas ---- */
+var SKIP={der:1,die:1,of:1,the:1,no:1,la:1,de:1,dead:0};
+function allMaps(st){
+  var set={},out=[];
+  var add=function(n){n=String(n||'').trim();if(n&&!set[n.toLowerCase()]){set[n.toLowerCase()]=1;out.push(n)}};
+  KNOWN.forEach(add);
+  arr(st&&st.runs).forEach(function(r){add(r.map)});
+  arr(st&&st.strategies).forEach(function(r){add(r.map)});
+  return out;
+}
+function mapFrom(q,st){
+  var best=null,bs=0;
+  allMaps(st).forEach(function(m){
+    var toks=vnorm(m).split(' ').filter(function(w){return w.length>=3&&!SKIP[w]});
+    var sc=0;
+    toks.forEach(function(w){if((' '+q+' ').indexOf(' '+w+' ')>=0)sc+=w.length>=4?2:1;else if(w.length>=5&&q.indexOf(w.slice(0,5))>=0)sc+=1});
+    var full=vnorm(m);if((' '+q+' ').indexOf(' '+full+' ')>=0)sc+=3;
+    if(sc>bs){bs=sc;best=m}
+  });
+  return bs>=1?best:null;
+}
+function lastMap(st){var r=arr(st&&st.runs)[0];return r?r.map:null}
+/* ---- respostas locais ---- */
+function answer(raw){
+  var st=load(),q=vnorm(raw);
+  if(!q)return null;
+  var runs=arr(st&&st.runs),recs=(st&&st.records)||{};
+  var map=mapFrom(q,st);
+  var n=numAfter(q,['round','rodada','ate']);
+  if(/\b(ajuda|o que voce faz|o que voce sabe|comandos)\b/.test(q))
+    return 'Posso responder sobre o seu caderno. Por exemplo: qual meu maior round em Gorod Krovi, qual meu melhor tempo até o round 30, compare com o recorde mundial de Kino, qual foi minha última partida, quantas partidas eu joguei, e qual a estratégia do round 20 em Kino der Toten.';
+  if(/\b(que horas|horas sao|hora e agora)\b/.test(q))return 'Agora são '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'.';
+  if(/\b(que dia|data de hoje|dia e hoje)\b/.test(q))return 'Hoje é '+new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})+'.';
+  if(/^(oi|ola|e ai|opa|jarvis|fala jarvis|bom dia|boa tarde|boa noite)\b/.test(q)&&q.split(' ').length<=3)return 'Estou aqui. Pode perguntar sobre os seus rounds.';
+  if(!st||(!runs.length&&!Object.keys(recs).length&&!arr(st.strategies).length)){
+    if(/\b(round|partida|tempo|recorde|estrategia)\b/.test(q))return 'Não encontrei dados do caderno neste aparelho. Abra o Caderno pelo mesmo endereço, finalize uma partida, e volte aqui.';
+  }
+  /* comparação com speedrunners */
+  if(/\b(recorde mundial|speedrun|speedrunner|speedrunners|world record|wr|recordista|comparar|compare|comparacao|quanto falta)\b/.test(q)){
+    var m1=map||lastMap(st);
+    if(!m1)return 'De qual mapa? Diga, por exemplo, compare com o recorde de Kino der Toten.';
+    var w=WR[m1];
+    if(!w)return 'Não tenho recorde de speedrunner para '+m1+'.';
+    var rn=(n===50||/\b50\b|cinquenta/.test(q))?50:30;
+    var wt=parseT(rn===30?w[0]:w[2]),who=rn===30?w[1]:w[3];
+    var mine=null;runs.filter(function(r){return r.map===m1}).forEach(function(r){var v=atRound(r,rn);if(v!=null&&(mine==null||v<mine))mine=v});
+    var rt=recs[m1]&&recs[m1].t&&+recs[m1].t[rn];if(rt&&(mine==null||rt<mine))mine=rt;
+    var base='O recorde solo até o round '+rn+' em '+m1+' é '+say_t(wt)+', de '+who+'.';
+    if(mine==null)return base+' Você ainda não chegou ao round '+rn+' nesse mapa no caderno.';
+    var d=mine-wt;
+    return base+' Seu melhor é '+say_t(mine)+', '+(d<=0?'melhor que o recorde!':'a '+say_t(d)+' do recorde, cerca de '+Math.round(d/wt*100)+' por cento mais lento.');
+  }
+  /* estratégia */
+  if(/\b(estrategia|estrategias|o que fazer|plano)\b/.test(q)){
+    var m2=map||lastMap(st);
+    var list=arr(st&&st.strategies).filter(function(x){return(!m2||x.map===m2)&&(n==null||(x.from<=n&&n<=x.to))});
+    if(!list.length)return 'Não achei estratégia'+(m2?' para '+m2:'')+(n!=null?' no round '+n:'')+' no seu caderno.';
+    var s0=list[0],lines=String(s0.plan||'').split('\n').filter(Boolean).slice(0,4).map(function(l){return l.replace(/^[•\-\s]+/,'')});
+    return s0.title+(list.length>1?' (há mais '+(list.length-1)+' para esse recorte)':'')+'. '+lines.join('. ');
+  }
+  /* quantas partidas */
+  if(/\b(quantas partidas|quantos jogos|quantas runs|quantas vezes)\b/.test(q)){
+    var c=runs.filter(function(r){return!map||r.map===map}).length;
+    return 'Você tem '+c+(c===1?' partida salva':' partidas salvas')+(map?' em '+map:'')+'.';
+  }
+  /* última partida */
+  if(/\b(ultima partida|ultimo jogo|ultima run|ultima vez)\b/.test(q)){
+    var r0=runs.filter(function(r){return!map||r.map===map})[0];
+    if(!r0)return 'Não achei nenhuma partida salva'+(map?' em '+map:'')+'.';
+    return 'Sua última partida'+(map?'':' foi em '+r0.map+',')+' chegou ao round '+r0.round+' em '+say_t(r0.total)+'.';
+  }
+  /* melhor tempo até round N */
+  if(/\b(melhor tempo|mais rapido|tempo ate|quanto tempo|menor tempo)\b/.test(q)){
+    var rn2=n||30,ms2=map?runs.filter(function(r){return r.map===map}):runs,best=null,bm=null;
+    ms2.forEach(function(r){var v=atRound(r,rn2);if(v!=null&&(best==null||v<best)){best=v;bm=r.map}});
+    if(best==null)return 'Você ainda não chegou ao round '+rn2+(map?' em '+map:'')+' em nenhuma partida salva.';
+    return 'Seu melhor tempo até o round '+rn2+(map?' em '+map:'')+' é '+say_t(best)+(map?'':', em '+bm)+'.';
+  }
+  /* maior round */
+  if(/\b(maior round|melhor round|round mais alto|mais longe|recorde|ate que round|maior rodada)\b/.test(q)||(/\bround\b/.test(q)&&/\b(maior|melhor|alto)\b/.test(q))){
+    var tbl={};
+    runs.forEach(function(r){if(!tbl[r.map]||r.round>tbl[r.map])tbl[r.map]=+r.round});
+    Object.keys(recs).forEach(function(k){var v=+recs[k].maxRound;if(v&&(!tbl[k]||v>tbl[k]))tbl[k]=v});
+    var ks=Object.keys(tbl);
+    if(!ks.length)return 'Ainda não há partidas salvas no caderno.';
+    if(map)return tbl[map]?'Seu maior round em '+map+' é o '+tbl[map]+'.':'Você ainda não tem partida salva em '+map+'.';
+    ks.sort(function(a,b){return tbl[b]-tbl[a]});
+    return 'Seu maior round é o '+tbl[ks[0]]+', em '+ks[0]+'.'+(ks.length>1?' Depois vem '+ks.slice(1,3).map(function(k){return k+' com '+tbl[k]}).join(' e ')+'.':'');
+  }
+  return null;
+}
+function contextForAI(){
+  var st=load();if(!st)return 'Sem dados do caderno.';
+  var runs=arr(st.runs),o=[];
+  var recs=st.records||{};
+  Object.keys(recs).forEach(function(k){var r=recs[k];o.push(k+': maior round '+r.maxRound+(r.t&&r.t[30]?', tempo até round 30 '+clock(r.t[30]):'')+(r.t&&r.t[50]?', até round 50 '+clock(r.t[50]):''))});
+  o.push('Total de partidas salvas: '+runs.length);
+  if(runs[0])o.push('Última partida: '+runs[0].map+', round '+runs[0].round+', tempo '+clock(runs[0].total));
+  return o.join('\n').slice(0,3500);
+}
+/* ---- interface ---- */
+var log=$('#log'),stEl=$('#st');
+function add(who,text,note){
+  var d=document.createElement('div');d.className='msg '+who;d.textContent=text;
+  if(note){var s=document.createElement('small');s.textContent=note;d.appendChild(s)}
+  log.appendChild(d);log.scrollTop=log.scrollHeight;
+}
+function setSt(t){stEl.textContent=t||''}
+var voiceOut=true;
+function speak(text,done){
+  if(!voiceOut||!window.speechSynthesis){done&&done();return}
+  try{
+    speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text.replace(/\s+/g,' '));u.lang='pt-BR';u.rate=1.02;
+    var vs=speechSynthesis.getVoices().filter(function(v){return /pt[-_]BR/i.test(v.lang)});
+    if(vs.length)u.voice=vs[0];
+    var fin=false,end=function(){if(!fin){fin=true;done&&done()}};
+    u.onend=end;u.onerror=end;
+    setTimeout(end,Math.min(30000,2500+text.length*95));
+    speechSynthesis.speak(u);
+  }catch(e){done&&done()}
+}
+function ask(raw){
+  raw=String(raw||'').trim();if(!raw)return;
+  add('me',raw);
+  var a=answer(raw);
+  if(a){add('ai',a);speak(a,afterSpeak);return}
+  var w=(cfg().worker||'').trim();
+  if(!w){
+    var m='Isso eu não sei pelo caderno. Para perguntas livres, configure a IA na engrenagem (⚙). Tente: “qual meu maior round em Kino”, ou diga “ajuda”.';
+    add('ai',m);speak(m,afterSpeak);return;
+  }
+  setSt('Pensando…');
+  var ctl=new AbortController();var tm=setTimeout(function(){ctl.abort()},20000);
+  fetch(w,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:raw.slice(0,500),context:contextForAI()}),signal:ctl.signal})
+    .then(function(r){return r.json()})
+    .then(function(j){var t=(j&&j.answer)||'Não consegui uma resposta agora.';add('ai',t,'IA');setSt('');speak(t,afterSpeak)})
+    .catch(function(){var t='A IA não respondeu. Confira o endereço do Worker e a internet.';add('ai',t);setSt('');speak(t,afterSpeak)})
+    .then(function(){clearTimeout(tm)});
+}
+/* ---- reconhecimento de voz ---- */
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec=null,on=false,speaking=false,mic=$('#mic');
+function afterSpeak(){speaking=false;if(on)startRec()}
+function startRec(){
+  if(!SR||rec||speaking)return;
+  var r=new SR();r.lang='pt-BR';r.continuous=false;r.interimResults=true;r.maxAlternatives=3;
+  var finalTxt='';
+  r.onstart=function(){setSt('Ouvindo…')};
+  r.onresult=function(e){
+    var t='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      var res=e.results[i];
+      if(res.isFinal){finalTxt=res[0].transcript;
+        for(var j=0;j<res.length&&j<3;j++){if(answer(res[j].transcript)){finalTxt=res[j].transcript;break}}}
+      else t+=res[0].transcript;
+    }
+    if(t)setSt('“'+t+'”');
+  };
+  r.onerror=function(e){
+    var c=e&&e.error;
+    if(c==='not-allowed'||c==='service-not-allowed'){on=false;mic.classList.remove('on');mic.textContent='🎙 Toque para falar';setSt('Microfone bloqueado. Toque no cadeado ao lado do endereço, libere o Microfone e tente de novo.')}
+    else if(c==='network')setSt('Sem internet: o reconhecimento de voz precisa de conexão.');
+  };
+  r.onend=function(){
+    rec=null;
+    if(finalTxt){speaking=true;setSt('');ask(finalTxt);return}
+    if(on&&document.visibilityState==='visible')setTimeout(startRec,300);
+  };
+  rec=r;
+  try{r.start()}catch(e){rec=null}
+}
+function toggleMic(){
+  if(!SR){add('ai','Este navegador não tem reconhecimento de voz. Abra pelo Chrome. Enquanto isso, digite embaixo.');return}
+  on=!on;
+  mic.classList.toggle('on',on);
+  mic.textContent=on?'■ Ouvindo… toque para parar':'🎙 Toque para falar';
+  if(on)startRec();else{setSt('');try{rec&&rec.abort()}catch(e){}rec=null;try{speechSynthesis.cancel()}catch(e){}speaking=false}
+}
+mic.addEventListener('click',toggleMic);
+$('#f').addEventListener('submit',function(e){e.preventDefault();var i=$('#q');var v=i.value;i.value='';speaking=true;ask(v)});
+$('#gear').addEventListener('click',function(){var s=$('#set');s.hidden=!s.hidden;$('#worker').value=cfg().worker||''});
+$('#saveset').addEventListener('click',function(){var c=cfg();c.worker=$('#worker').value.trim();setCfg(c);setSt('Salvo.');$('#set').hidden=true});
+$('#voiceoff').addEventListener('click',function(){voiceOut=!voiceOut;this.textContent='Voz de resposta: '+(voiceOut?'ligada':'desligada');if(!voiceOut)try{speechSynthesis.cancel()}catch(e){}});
+['Qual meu maior round?','Melhor tempo até o round 30','Compare com o recorde mundial','Qual minha última partida?','Ajuda'].forEach(function(t){
+  var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=t;b.addEventListener('click',function(){speaking=true;ask(t)});$('#chips').appendChild(b);
+});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&on&&!rec&&!speaking)startRec()});
+add('ai','Olá, sou o Jarvis. Toque no microfone e pergunte sobre os seus rounds, ou digite. Diga “ajuda” para ver exemplos.');
+if(window.speechSynthesis)speechSynthesis.getVoices();
+})();
+</script>
+</body>
+</html>
