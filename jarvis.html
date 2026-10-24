@@ -40,9 +40,9 @@ input{flex:1;min-width:0;height:44px;border-radius:8px;border:1px solid #5a2a22;
 <div id="st" role="status"></div>
 <div class="dock">
   <div id="set" hidden>
-    <p>Para perguntas livres (fora dos seus rounds) cole aqui o endereço do seu Worker (Cloudflare). Sem isso, o Jarvis responde só sobre o seu caderno.</p>
+    <p>Perguntas livres já usam uma IA gratuita sem configurar nada. Só preencha abaixo se você tiver um Worker próprio.</p>
     <input id="worker" placeholder="https://jarvis.seunome.workers.dev" autocomplete="off" inputmode="url">
-    <div class="row"><button class="btn" id="saveset">Salvar</button><button class="btn" id="voiceoff">Voz de resposta: ligada</button></div>
+    <div class="row"><button class="btn" id="saveset">Salvar</button><button class="btn" id="testai">Testar IA</button><button class="btn" id="voiceoff">Voz de resposta: ligada</button></div>
   </div>
   <div class="chips" id="chips"></div>
   <button id="mic" type="button">🎙 Toque para falar</button>
@@ -224,17 +224,44 @@ function ask(raw){
   add('me',raw);
   var a=answer(raw);
   if(a){add('ai',a);speak(a,afterSpeak);return}
-  var w=(cfg().worker||'').trim();
-  if(!w){
-    var m='Isso eu não sei pelo caderno. Para perguntas livres, configure a IA na engrenagem (⚙). Tente: “qual meu maior round em Kino”, ou diga “ajuda”.';
-    add('ai',m);speak(m,afterSpeak);return;
-  }
   setSt('Pensando…');
-  var ctl=new AbortController();var tm=setTimeout(function(){ctl.abort()},20000);
+  callAI(raw,function(t,err){
+    setSt('');
+    if(err){add('ai',err);speak('A IA não respondeu. Veja a mensagem na tela.',afterSpeak);return}
+    add('ai',t,'IA');speak(t,afterSpeak);
+  });
+}
+var SYS='Você é o Jarvis, assistente por voz de um jogador de Call of Duty Zombies. Responda sempre em português do Brasil, em no máximo 3 frases curtas, sem listas, sem markdown e sem emojis, porque a resposta será lida em voz alta.';
+function callFree(raw,cb){
+  var ctl=new AbortController();var tm=setTimeout(function(){ctl.abort()},25000);
+  var prompt=raw.slice(0,400);
+  fetch('https://text.pollinations.ai/'+encodeURIComponent(prompt)+'?model=openai&system='+encodeURIComponent(SYS),{signal:ctl.signal})
+    .then(function(r){return r.text().then(function(t){return {ok:r.ok,status:r.status,t:t}})})
+    .then(function(x){
+      var t=String(x.t||'').trim();
+      if(!x.ok||!t)return cb('','O serviço gratuito de IA respondeu com erro '+x.status+'. Tente de novo em instantes.');
+      if(t.charAt(0)==='{'){try{var j=JSON.parse(t);if(j.error)return cb('','O serviço gratuito de IA devolveu um erro: '+String(j.error.message||j.error).slice(0,160))}catch(e){}}
+      cb(t.replace(/[*_#`]/g,'').slice(0,700),'');
+    })
+    .catch(function(e){cb('',e&&e.name==='AbortError'?'A IA gratuita demorou demais. Tente de novo.':'Não consegui falar com a IA gratuita. Confira a internet e tente de novo.')})
+    .then(function(){clearTimeout(tm)});
+}
+function callAI(raw,cb){
+  var w=(cfg().worker||'').trim();
+  if(!w)return callFree(raw,cb);
+  var ctl=new AbortController();var tm=setTimeout(function(){ctl.abort()},25000);
   fetch(w,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:raw.slice(0,500),context:contextForAI()}),signal:ctl.signal})
-    .then(function(r){return r.json()})
-    .then(function(j){var t=(j&&j.answer)||'Não consegui uma resposta agora.';add('ai',t,'IA');setSt('');speak(t,afterSpeak)})
-    .catch(function(){var t='A IA não respondeu. Confira o endereço do Worker e a internet.';add('ai',t);setSt('');speak(t,afterSpeak)})
+    .then(function(r){return r.text().then(function(t){return {ok:r.ok,status:r.status,t:t}})})
+    .then(function(x){
+      var j=null;try{j=JSON.parse(x.t)}catch(e){}
+      if(j&&j.error)return cb('',j.error);
+      if(!x.ok)return cb('','O Worker respondeu com erro '+x.status+': '+String(x.t).slice(0,200));
+      if(j&&j.answer)return cb(j.answer,'');
+      cb('','Resposta inesperada do Worker: '+String(x.t).slice(0,200));
+    })
+    .catch(function(e){
+      cb('',e&&e.name==='AbortError'?'A IA demorou demais (mais de 25 segundos).':'O navegador bloqueou ou não alcançou o Worker. Causas comuns: endereço errado, ou a variável ALLOW do Worker não é exatamente '+location.origin+' (sem barra no final e sem /ZombieHelp-).');
+    })
     .then(function(){clearTimeout(tm)});
 }
 /* ---- reconhecimento de voz ---- */
@@ -279,12 +306,13 @@ mic.addEventListener('click',toggleMic);
 $('#f').addEventListener('submit',function(e){e.preventDefault();var i=$('#q');var v=i.value;i.value='';speaking=true;ask(v)});
 $('#gear').addEventListener('click',function(){var s=$('#set');s.hidden=!s.hidden;$('#worker').value=cfg().worker||''});
 $('#saveset').addEventListener('click',function(){var c=cfg();c.worker=$('#worker').value.trim();setCfg(c);setSt('Salvo.');$('#set').hidden=true});
+$('#testai').addEventListener('click',function(){var c=cfg();c.worker=$('#worker').value.trim();setCfg(c);setSt('Testando…');callAI('Diga apenas: IA funcionando.',function(t,err){setSt('');add('ai',err?('Teste falhou: '+err):('Teste ok: '+t),'IA')})});
 $('#voiceoff').addEventListener('click',function(){voiceOut=!voiceOut;this.textContent='Voz de resposta: '+(voiceOut?'ligada':'desligada');if(!voiceOut)try{speechSynthesis.cancel()}catch(e){}});
 ['Qual meu maior round?','Melhor tempo até o round 30','Compare com o recorde mundial','Qual minha última partida?','Ajuda'].forEach(function(t){
   var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=t;b.addEventListener('click',function(){speaking=true;ask(t)});$('#chips').appendChild(b);
 });
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&on&&!rec&&!speaking)startRec()});
-add('ai','Olá, sou o Jarvis. Toque no microfone e pergunte sobre os seus rounds, ou digite. Diga “ajuda” para ver exemplos.');
+add('ai','Olá, sou o Jarvis. Toque no microfone e pergunte sobre os seus rounds, ou faça qualquer outra pergunta. Diga “ajuda” para ver exemplos.');
 if(window.speechSynthesis)speechSynthesis.getVoices();
 })();
 </script>
