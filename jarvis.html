@@ -42,7 +42,7 @@ input{flex:1;min-width:0;height:44px;border-radius:8px;border:1px solid #5a2a22;
   <div id="set" hidden>
     <p>Perguntas livres já usam uma IA gratuita sem configurar nada. Só preencha abaixo se você tiver um Worker próprio.</p>
     <input id="worker" placeholder="https://jarvis.seunome.workers.dev" autocomplete="off" inputmode="url">
-    <div class="row"><button class="btn" id="saveset">Salvar</button><button class="btn" id="testai">Testar IA</button><button class="btn" id="voiceoff">Voz de resposta: ligada</button></div>
+    <div class="row"><button class="btn" id="saveset">Salvar</button><button class="btn" id="testai">Testar IA</button><button class="btn" id="noworker">Usar só a IA gratuita</button><button class="btn" id="voiceoff">Voz de resposta: ligada</button></div>
   </div>
   <div class="chips" id="chips"></div>
   <button id="mic" type="button">🎙 Toque para falar</button>
@@ -246,9 +246,20 @@ function callFree(raw,cb){
     .catch(function(e){cb('',e&&e.name==='AbortError'?'A IA gratuita demorou demais. Tente de novo.':'Não consegui falar com a IA gratuita. Confira a internet e tente de novo.')})
     .then(function(){clearTimeout(tm)});
 }
+var BADAI=/^\s*(erro|error)\b|high demand|overloaded|unavailable|quota|rate limit|n[aã]o consegui responder/i;
 function callAI(raw,cb){
   var w=(cfg().worker||'').trim();
   if(!w)return callFree(raw,cb);
+  callWorker(raw,function(t,err){
+    if(err||BADAI.test(t))return callFree(raw,function(t2,err2){
+      if(err2)return cb('',err2+' (O seu Worker também falhou: '+String(err||t).slice(0,120)+')');
+      cb(t2,'');
+    });
+    cb(t,'');
+  });
+}
+function callWorker(raw,cb){
+  var w=(cfg().worker||'').trim();
   var ctl=new AbortController();var tm=setTimeout(function(){ctl.abort()},25000);
   fetch(w,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:raw.slice(0,500),context:contextForAI()}),signal:ctl.signal})
     .then(function(r){return r.text().then(function(t){return {ok:r.ok,status:r.status,t:t}})})
@@ -307,6 +318,7 @@ $('#f').addEventListener('submit',function(e){e.preventDefault();var i=$('#q');v
 $('#gear').addEventListener('click',function(){var s=$('#set');s.hidden=!s.hidden;$('#worker').value=cfg().worker||''});
 $('#saveset').addEventListener('click',function(){var c=cfg();c.worker=$('#worker').value.trim();setCfg(c);setSt('Salvo.');$('#set').hidden=true});
 $('#testai').addEventListener('click',function(){var c=cfg();c.worker=$('#worker').value.trim();setCfg(c);setSt('Testando…');callAI('Diga apenas: IA funcionando.',function(t,err){setSt('');add('ai',err?('Teste falhou: '+err):('Teste ok: '+t),'IA')})});
+$('#noworker').addEventListener('click',function(){var c=cfg();c.worker='';setCfg(c);$('#worker').value='';setSt('Worker removido. Usando a IA gratuita.')});
 $('#voiceoff').addEventListener('click',function(){voiceOut=!voiceOut;this.textContent='Voz de resposta: '+(voiceOut?'ligada':'desligada');if(!voiceOut)try{speechSynthesis.cancel()}catch(e){}});
 ['Qual meu maior round?','Melhor tempo até o round 30','Compare com o recorde mundial','Qual minha última partida?','Ajuda'].forEach(function(t){
   var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=t;b.addEventListener('click',function(){speaking=true;ask(t)});$('#chips').appendChild(b);
